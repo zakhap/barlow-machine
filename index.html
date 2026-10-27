@@ -6,153 +6,160 @@
 <title>Clarence Machine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
+/* Graphite and off-white, hairlines, no color. Value matters more than hue. */
 :root{
-  --bg:#0b0b0a; --chassis:#252523; --chassis2:#1f1f1d; --screen:#0f0f0e; --line:#34342f;
-  --ink:#ece8de; --ink2:#c9c4b8; --dim:#8a867c; --faint:#57544d;
-  --amber:#f5b25a; --slate:#2c2d2b;
-  --chalkboard: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.012 .04' numOctaves='4' seed='3'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  --v0:#ff6a3d; --v1:#3fe0c5; --v2:#ff5fa8; --v3:#c6b3ff; --v4:#f2d250; --v5:#5fb0ff; --v6:#8fe36b; --v7:#d6b48a;
-  --sans:"Archivo", ui-sans-serif, system-ui, sans-serif;
-  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --bg:#131312; --body:#191918; --panel:#1d1d1c; --well:#161615; --rule:#2a2a28; --rule2:#383835;
+  --ink:#ecebe6; --ink2:#bab9b3; --dim:#7a7974; --faint:#4b4a46;
+  --v0:#f2f1ec; --v1:#c9c7c0; --v2:#a3a19a; --v3:#ded5c4; --v4:#bcc2c7; --v5:#8c8a84; --v6:#d4cfc5; --v7:#a3a8ad;
+  --sans:"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --cap:500 9.5px/1 var(--sans);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.35 var(--sans)}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.07;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:300 13px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
 button,select,input{font:inherit;color:inherit}
-.top,.stage,footer{position:relative;z-index:1}
+::selection{background:var(--ink);color:var(--bg)}
 
 /* ---------- top bar ---------- */
-.top{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;padding:12px 18px;background:linear-gradient(var(--chassis),var(--chassis2));border-bottom:1px solid #000;box-shadow:0 1px 0 rgba(255,255,255,.04) inset}
-.brand{display:flex;align-items:center;gap:10px}
-.brand b{font:800 17px/1 var(--sans);font-stretch:125%;letter-spacing:.06em;text-transform:uppercase}
-.grp{display:flex;gap:10px;align-items:center}
-.vsep{width:1px;align-self:stretch;background:rgba(0,0,0,.6);box-shadow:1px 0 0 rgba(255,255,255,.04)}
-.btn{background:#30302d;border:1px solid #111;border-radius:6px;padding:6px 10px;cursor:pointer;white-space:nowrap;font:600 12px var(--sans);color:var(--ink2);box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
-.btn:hover{color:var(--ink);background:#383834}
-.btn.on{background:var(--amber);color:#1a1205;border-color:#000}
-.btn:disabled{opacity:.5;cursor:default}
-#play{width:58px;height:58px;border-radius:50%;font:800 13px var(--sans);letter-spacing:.06em;display:grid;place-items:center;padding:0}
-#play.on{background:#d9ff5a;color:#111}
-.hold{width:58px;height:58px;border-radius:10px;display:grid;place-items:center;font:800 12px var(--sans);letter-spacing:.1em;user-select:none;touch-action:none}
-.hold.on{background:var(--amber);color:#1a1205}
-.scenes{display:grid;grid-template-columns:repeat(4,28px);gap:5px}
-.scene{width:28px;height:26px;border-radius:5px;border:1px solid #000;background:#1a1a18;color:var(--faint);font:600 11px var(--mono);cursor:pointer;padding:0}
-.scene.full{background:#3a3a35;color:var(--ink2)}
-.scene.active{background:var(--amber);color:#1a1205}
-.scene.pending{animation:blink .25s steps(2) infinite}
-@keyframes blink{50%{background:#5a4a2a;color:var(--amber)}}
-.slab{font:600 10px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);writing-mode:vertical-rl;transform:rotate(180deg)}
-select{background:#1a1a18;border:1px solid #000;border-radius:6px;padding:5px 6px;color:var(--ink2);max-width:180px}
-.col{display:flex;flex-direction:column;gap:6px}
+.top{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;padding:18px 28px;background:var(--body);border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:12px;margin-right:8px}
+.brand b{font:500 11px/1 var(--sans);letter-spacing:.42em;text-transform:uppercase;color:var(--ink)}
+.grp{display:flex;gap:14px;align-items:center}
+.vsep{width:1px;align-self:stretch;background:var(--rule)}
+.btn{background:transparent;border:1px solid var(--rule2);border-radius:2px;padding:6px 11px;cursor:pointer;white-space:nowrap;font:var(--cap);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+.btn:hover{color:var(--ink);border-color:var(--dim)}
+.btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+#play{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;padding:0;border-color:var(--ink2);color:var(--ink)}
+#play.on{background:var(--ink);color:var(--bg)}
+.hold{width:52px;height:52px;border-radius:2px;display:grid;place-items:center;user-select:none;touch-action:none}
+.scenes{display:grid;grid-template-columns:repeat(4,24px);gap:6px}
+.scene{width:24px;height:24px;border-radius:50%;border:1px solid var(--rule2);background:transparent;color:var(--faint);font:400 10px var(--mono);cursor:pointer;padding:0}
+.scene.full{border-color:var(--dim);color:var(--ink2)}
+.scene.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.scene.pending{animation:blink .3s steps(2) infinite}
+@keyframes blink{50%{background:transparent;color:var(--ink)}}
+.slab{font:var(--cap);letter-spacing:.2em;text-transform:uppercase;color:var(--faint);writing-mode:vertical-rl;transform:rotate(180deg)}
+select{background:transparent;border:1px solid var(--rule2);border-radius:2px;padding:5px 6px;color:var(--ink2);max-width:180px;font:400 11px var(--sans)}
+select option{background:var(--body);color:var(--ink)}
+.col{display:flex;flex-direction:column;gap:8px}
 .row{display:flex;gap:6px;align-items:center}
 
-/* ---------- knobs ---------- */
-.knob{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;cursor:ns-resize;user-select:none;touch-action:none}
-.klab{font:500 12px/1 var(--sans);font-stretch:88%;color:var(--ink2);white-space:nowrap}
-.knob svg{width:44px;height:44px;display:block}
-.kt{fill:none;stroke:#0d0d0c;stroke-width:4.5;stroke-linecap:round}
-.ka{fill:none;stroke:var(--vc,var(--amber));stroke-width:4.5;stroke-linecap:round}
-.kp{stroke:#0d0d0c;stroke-width:3.4;stroke-linecap:round}
-.kv{font:11px/1 var(--mono);background:var(--screen);border:1px solid #000;border-radius:3px;padding:3px 0;width:58px;text-align:center;color:var(--ink2)}
-.knob.lit .kv{color:var(--amber)}
-.knob.sm{width:54px}.knob.sm svg{width:36px;height:36px}.knob.sm .kv{width:50px}
-.knob.lg{width:72px}.knob.lg svg{width:54px;height:54px}
+/* ---------- knobs: a flat disc with one line ---------- */
+.knob{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px;cursor:ns-resize;user-select:none;touch-action:none}
+.klab{font:var(--cap);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.knob svg{width:42px;height:42px;display:block;overflow:visible}
+.kt{fill:none;stroke:var(--rule2);stroke-width:1}
+.ka{fill:none;stroke:var(--ink2);stroke-width:1.2}
+.kd{fill:#262624;stroke:#2f2f2d;stroke-width:1}
+.kp{stroke:var(--ink);stroke-width:1.6;stroke-linecap:round}
+.kv{font:400 10.5px/1 var(--mono);width:58px;text-align:center;color:var(--dim)}
+.knob.lit .kv{color:var(--ink)}
+.knob:hover .kd{fill:#2b2b29}
+.knob.sm{width:54px}.knob.sm svg{width:34px;height:34px}.knob.sm .kv{width:50px}
+.knob.lg{width:72px}.knob.lg svg{width:50px;height:50px}
 
-/* ---------- screens ---------- */
-.screen{background:var(--screen);border-radius:8px;padding:7px 12px;display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-content:center;box-shadow:inset 0 0 0 1px #000, inset 0 2px 6px rgba(0,0,0,.6)}
+/* ---------- value lists ---------- */
+.screen{background:transparent;border-left:1px solid var(--rule);padding:2px 0 2px 16px;display:grid;grid-template-columns:1fr 1fr;gap:0 22px;align-content:center}
 .screen.one{grid-template-columns:1fr;min-width:150px}
-.prm{display:flex;justify-content:space-between;gap:10px;font:12.5px/1.6 var(--sans);font-stretch:92%;cursor:ns-resize;user-select:none;touch-action:none;white-space:nowrap}
+.prm{display:flex;justify-content:space-between;gap:12px;font:300 11.5px/1.75 var(--sans);cursor:ns-resize;user-select:none;touch-action:none;white-space:nowrap;border-bottom:1px solid transparent}
 .prm.enum{cursor:pointer}
 .pl{color:var(--dim)}
-.pv{font:12px/1.6 var(--mono);color:var(--ink2)}
-.prm.lit .pv{color:var(--amber)}
-.prm:hover .pl{color:var(--ink)}
+.pv{font:400 11px/1.75 var(--mono);color:var(--faint)}
+.prm.lit .pv{color:var(--ink)}
+.prm:hover{border-bottom-color:var(--rule)}
+.prm:hover .pl{color:var(--ink2)}
 
 /* ---------- stage ---------- */
-.stage{display:grid;grid-template-columns:minmax(380px,1fr) minmax(720px,790px);gap:18px;padding:18px;align-items:start}
-.bloomWrap{position:sticky;top:18px;aspect-ratio:1;width:100%;border-radius:18px;background:var(--chalkboard) var(--slate);box-shadow:inset 0 0 0 1px #000,inset 0 0 60px rgba(0,0,0,.45)}
-#bloom{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
-.bloomHint{position:absolute;left:16px;bottom:12px;color:var(--faint);font:11px var(--sans);pointer-events:none}
-.rack{display:flex;flex-direction:column;gap:12px}
+.stage{display:grid;grid-template-columns:minmax(380px,1fr) minmax(720px,800px);gap:28px;padding:28px;align-items:start}
+.bloomWrap{position:sticky;top:28px;aspect-ratio:1;width:100%;border-radius:50%;background:var(--well);box-shadow:inset 0 0 0 1px var(--rule)}
+#bloom{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;border-radius:50%}
+.bloomHint{position:absolute;left:0;right:0;bottom:-26px;text-align:center;color:var(--faint);font:var(--cap);letter-spacing:.16em;text-transform:uppercase;pointer-events:none}
+.rack{display:flex;flex-direction:column;gap:18px}
 
-/* ---------- device strips ---------- */
-.dev{background:linear-gradient(var(--chassis),var(--chassis2));border-radius:12px;padding:10px 12px 12px;box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 0 0 1px #000,0 12px 28px rgba(0,0,0,.35);position:relative;overflow:hidden}
-.dev::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--vc)}
-.dev.muted{filter:saturate(.25) brightness(.8)}
-.dhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.panel{background:linear-gradient(var(--chassis),var(--chassis2));border-radius:12px;padding:10px 12px 14px;box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 0 0 1px #000,0 12px 28px rgba(0,0,0,.35)}
-.ptitle{display:flex;align-items:center;gap:12px;margin:2px 0 10px}
-.ptitle.sub{margin-top:14px}
-.panel.voices{padding:10px 12px}
-.panel.voices .ptitle{margin:0}
-.ptitle h2{margin:0;font:800 13px var(--sans);font-stretch:118%;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
-.hint{color:var(--faint);font-size:12px}
-.stepper{display:flex;align-items:center;gap:0;background:var(--screen);border-radius:7px;box-shadow:inset 0 0 0 1px #000}
-.stepper .btn{padding:3px 10px;border-radius:6px;font-size:14px}
-#countVal{font:600 15px var(--mono);color:var(--amber);min-width:26px;text-align:center}
-.instGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px}
-.icard{background:#1c1c1a;border-radius:10px;padding:8px 10px 10px;box-shadow:inset 0 0 0 1px #000;border-top:3px solid var(--vc)}
-.icard.unused{opacity:.55}
-.ihead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.badge{width:24px;height:24px;border-radius:50%;border:0;background:var(--vc);color:#111;font:700 12px var(--mono);cursor:pointer;flex:none;transition:box-shadow .05s}
-.usedby{flex:1;text-align:right;color:var(--dim);font:11px var(--mono)}
-.iknobs{display:flex;justify-content:space-between;margin-bottom:8px}
-.icard .screen{grid-template-columns:1fr 1fr}
-.patch{display:grid;gap:4px;align-items:center;justify-content:start}
-.pcorner{font:10px var(--mono);color:var(--faint)}
-.phead{background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;padding:0}
-.phead b{font:700 13px var(--mono)}
-.ptype{font:9px var(--mono);color:var(--dim)}
-.prow{font:600 11px var(--mono);color:var(--dim)}
-.cell{width:34px;height:24px;border-radius:5px;border:1px solid #000;background:#1a1a18;cursor:pointer;position:relative}
-.cell::after{content:"";position:absolute;inset:8px 13px;border-radius:50%;background:#3a3a35}
-.cell.on{background:color-mix(in srgb,var(--vc) 25%,#1a1a18)}
-.cell.on::after{inset:5px 10px;background:var(--vc)}
-.rhythms{display:flex;flex-direction:column;gap:12px}
-.rlabel{font:700 13px var(--mono);color:var(--ink)}
-.arrow{color:var(--faint);font-size:11px}
-.plays{display:flex;gap:3px}
-.ichip{width:22px;height:22px;border-radius:5px;border:1px solid #000;background:#1a1a18;color:var(--dim);font:600 11px var(--mono);cursor:pointer;padding:0}
-.ichip.on{background:var(--ic);color:#111}
-.playsName{font:800 15px var(--sans);font-stretch:118%;letter-spacing:.05em;text-transform:uppercase;color:var(--vc);margin-left:4px}
-select.inst{font:800 15px var(--sans);font-stretch:118%;letter-spacing:.05em;text-transform:uppercase;color:var(--vc);background:transparent;border:0;appearance:none;-webkit-appearance:none;cursor:pointer;padding:0 4px;max-width:none}
-select.inst option{color:#111;text-transform:none}
-.readout{flex:1;color:var(--dim);font:11px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dhead .btn{padding:3px 8px;font-size:11px}
-.btn.m.on{background:#d24a3a;color:#fff}
-.btn.s.on{background:#e8c547;color:#111}
-.dbody{display:grid;grid-template-columns:auto minmax(250px,1fr) 164px;gap:12px;align-items:stretch}
-.knobs{display:grid;grid-template-columns:repeat(4,64px);gap:10px 6px;align-content:center}
-.fan{width:164px;height:164px;display:block;touch-action:none;cursor:pointer;align-self:center;border-radius:10px;background:var(--chalkboard) var(--slate);box-shadow:inset 0 0 0 1px #000}
-.dfoot{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;margin-top:10px}
-.chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;max-width:300px}
-.chip{border:1px solid #000;background:#1a1a18;border-radius:999px;padding:2px 9px;cursor:pointer;font:11px var(--mono);color:var(--dim)}
-.chip.on{background:var(--vc);color:#111}
-.chip.ghost{background:transparent;border-color:var(--line)}
-.tree{width:100%;height:96px;display:block;cursor:pointer;border-radius:8px;background:var(--chalkboard) var(--slate);box-shadow:inset 0 0 0 1px #000}
+/* ---------- strips ---------- */
+.dev,.panel{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:16px 18px 18px;position:relative}
+.dev::before{content:"";position:absolute;left:-1px;top:16px;bottom:16px;width:2px;background:var(--vc)}
+.dev.muted{opacity:.4}
+.dhead{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.ptitle{display:flex;align-items:baseline;gap:14px;margin:0 0 14px}
+.ptitle.sub{margin-top:22px}
+.panel.voices{padding:14px 18px}
+.panel.voices .ptitle{margin:0;align-items:center}
+.ptitle h2{margin:0;font:500 10px var(--sans);letter-spacing:.36em;text-transform:uppercase;color:var(--ink)}
+.rack > .ptitle{margin:10px 0 -4px}
+.hint{color:var(--faint);font:300 11.5px var(--sans)}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper .btn{width:26px;height:26px;padding:0;border-radius:50%;font:300 14px/1 var(--sans);letter-spacing:0}
+#countVal{font:300 20px var(--sans);color:var(--ink);min-width:30px;text-align:center}
+.instGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.icard{background:var(--panel);padding:14px 14px 14px 16px;position:relative}
+.icard::before{content:"";position:absolute;left:0;top:14px;width:2px;height:22px;background:var(--vc)}
+.icard.unused{opacity:.4}
+.ihead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.badge{width:22px;height:22px;border-radius:50%;border:1px solid var(--vc);background:transparent;color:var(--vc);font:400 10px var(--mono);cursor:pointer;flex:none;transition:box-shadow .05s}
+.usedby{flex:1;text-align:right;color:var(--faint);font:400 10px var(--mono);letter-spacing:.06em}
+.iknobs{display:flex;justify-content:space-between;margin-bottom:14px}
+.icard .screen{grid-template-columns:1fr 1fr;border-left:0;padding-left:0;border-top:1px solid var(--rule);padding-top:8px}
+.patch{display:grid;gap:6px;align-items:center;justify-content:start}
+.pcorner{font:var(--cap);color:var(--faint)}
+.phead{background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0}
+.phead b{font:400 11px var(--mono)}
+.ptype{font:var(--cap);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.prow{font:400 10px var(--mono);color:var(--dim)}
+.cell{width:34px;height:22px;border:0;background:transparent;cursor:pointer;position:relative}
+.cell::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule)}
+.cell::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:var(--rule2)}
+.cell.on::after{width:11px;height:11px;margin:-5.5px 0 0 -5.5px;background:var(--vc)}
+.cell:hover::after{background:var(--dim)}
+.rhythms{display:flex;flex-direction:column;gap:18px}
+.rlabel{font:400 11px var(--mono);color:var(--ink)}
+.arrow{color:var(--faint);font:var(--cap);letter-spacing:.14em;text-transform:uppercase}
+.plays{display:flex;gap:4px}
+.ichip{width:20px;height:20px;border-radius:50%;border:1px solid var(--rule2);background:transparent;color:var(--faint);font:400 9.5px var(--mono);cursor:pointer;padding:0}
+.ichip:hover{color:var(--ink2);border-color:var(--dim)}
+.ichip.on{background:var(--ic);border-color:var(--ic);color:var(--bg)}
+.playsName,select.inst{font:400 11px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--vc)}
+.playsName{margin-left:6px}
+select.inst{background:transparent;border:0;appearance:none;-webkit-appearance:none;cursor:pointer;padding:0 2px;max-width:none}
+select.inst option{text-transform:none;letter-spacing:0}
+.readout{flex:1;color:var(--faint);font:400 10px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;padding-right:6px}
+.dhead .btn{padding:0;width:22px;height:22px;border-radius:50%;letter-spacing:0;font:400 9.5px var(--mono)}
+.dbody{display:grid;grid-template-columns:auto minmax(250px,1fr) 156px;gap:22px;align-items:center}
+.knobs{display:grid;grid-template-columns:repeat(4,60px);gap:16px 8px;align-content:center}
+.knobs .knob{width:60px}
+.fan{width:156px;height:156px;display:block;touch-action:none;cursor:pointer;border-radius:50%;background:var(--well);box-shadow:inset 0 0 0 1px var(--rule)}
+.dfoot{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:280px}
+.chip{border:1px solid var(--rule2);background:transparent;border-radius:999px;padding:3px 10px;cursor:pointer;font:400 10px var(--mono);color:var(--dim)}
+.chip:hover{color:var(--ink2)}
+.chip.on{border-color:var(--ink);color:var(--ink)}
+.chip.ghost{border-style:dashed}
+.tree{width:100%;height:92px;display:block;cursor:pointer}
 
-footer{padding:2px 18px 34px;color:var(--dim);max-width:1100px;font-size:12.5px;line-height:1.6}
-footer b{color:var(--ink2)}
-kbd{border:1px solid var(--line);border-radius:4px;padding:0 5px;font:11px var(--mono);color:var(--ink2);background:#151513}
+footer{padding:24px 28px 48px;color:var(--dim);max-width:980px;font:300 12px/1.8 var(--sans)}
+footer b{color:var(--ink2);font-weight:500}
+kbd{border:1px solid var(--rule2);border-radius:2px;padding:0 5px;font:400 10px var(--mono);color:var(--ink2)}
 
 /* ---------- perform mode ---------- */
 body.perform .rack, body.perform footer{display:none}
 body.perform .stage{grid-template-columns:1fr}
-body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 240px));margin:0 auto}
+body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220px));margin:0 auto}
 
-@media (max-width:1380px){
+@media (max-width:1400px){
   .stage{grid-template-columns:1fr}
-  .bloomWrap{position:relative;top:0;max-width:640px;margin:0 auto}
+  .bloomWrap{position:relative;top:0;max-width:600px;margin:0 auto 20px}
 }
 @media (max-width:820px){
-  .top{padding:10px 16px}.stage{padding:12px 16px}footer{padding:2px 16px 24px}
+  .top{padding:14px 16px;gap:14px 18px}.stage{padding:16px}footer{padding:16px 16px 32px}
   .dbody{grid-template-columns:1fr}
   .knobs{grid-template-columns:repeat(4,1fr);justify-items:center}
+  .screen{border-left:0;padding-left:0;border-top:1px solid var(--rule);padding-top:8px}
   .fan{margin:0 auto}
   .dfoot{grid-template-columns:1fr}
+  .instGrid{grid-template-columns:1fr}
   .slab{display:none}
 }
 </style>
@@ -160,12 +167,12 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 240p
 <body>
 <header class="top">
   <div class="brand">
-    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><g fill="none" stroke-width="3"><path d="M15 15 L15 2" stroke="#ff6a3d"/><path d="M15 15 L26 21" stroke="#3fe0c5"/><path d="M15 15 L6 24" stroke="#ff5fa8"/><path d="M15 15 L4 9" stroke="#c6b3ff"/></g></svg>
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="none" stroke="#ecebe6" stroke-width="1"/><line x1="9" y1="9" x2="9" y2="2.5" stroke="#ecebe6" stroke-width="1.4" stroke-linecap="round"/></svg>
     <b>Clarence Machine</b>
   </div>
   <div class="vsep"></div>
   <div class="grp">
-    <button class="btn" id="play">PLAY</button>
+    <button class="btn" id="play">Play</button>
     <div id="tempoKnob"></div>
     <div class="screen one" id="globalScreen"></div>
   </div>
@@ -188,13 +195,13 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 240p
       <select id="presets"></select>
       <button class="btn" id="undo" title="Undo (⌘Z)">↶</button>
       <button class="btn" id="redo" title="Redo (⇧⌘Z)">↷</button>
-      <button class="btn" id="mutateAll" title="Randomize every rhythm">⚄ All</button>
+      <button class="btn" id="mutateAll" title="Randomize every rhythm">Mutate</button>
     </div>
     <div class="row">
       <button class="btn" id="save">Save</button>
       <button class="btn" id="share">Copy link</button>
       <button class="btn" id="bounce" title="Render 4 cycles to a WAV file">Bounce WAV</button>
-      <button class="btn" id="midiFile" title="Export 4 cycles as a MIDI file">.mid</button>
+      <button class="btn" id="midiFile" title="Export 4 cycles as a MIDI file">MIDI file</button>
     </div>
   </div>
   <div class="col">
@@ -203,7 +210,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 240p
       <select id="midiOut" hidden></select>
       <button class="btn on" id="synthBtn" title="Internal synth on/off">Synth</button>
     </div>
-    <div class="row"><button class="btn" id="performBtn" title="Perform mode (P)">◉ Perform</button></div>
+    <div class="row"><button class="btn" id="performBtn" title="Perform mode (P)">Perform</button></div>
   </div>
 </header>
 
@@ -219,7 +226,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 240p
         <span class="hint">Each voice adds one rhythm and one instrument.</span>
       </div>
     </section>
-    <div class="ptitle"><h2>Rhythms</h2><span class="hint">Patterns. The color is the instrument a rhythm plays.</span></div>
+    <div class="ptitle"><h2>Rhythms</h2><span class="hint">Patterns. The shade is the instrument a rhythm plays.</span></div>
     <div class="rhythms" id="rhythms"></div>
     <section class="panel">
       <div class="ptitle"><h2>Instruments</h2><span class="hint">Sounds. Click a number to hear it.</span></div>
@@ -231,9 +238,9 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 240p
 </div>
 
 <footer>
-  <p><b>Instruments and rhythms.</b> Set how many slots you want (1–8). Each slot gets an <b>instrument</b>, which is the sound: type, pitch, decay, tone, pitch mapping and MIDI channel. It also gets a <b>rhythm</b>, which is the pattern. The patch grid sets which instrument each rhythm plays. Several rhythms can share one conga, and an instrument can sit unused. A rhythm's color is always the color of the instrument it plays.</p>
+  <p><b>Instruments and rhythms.</b> Set how many slots you want (1–8). Each slot gets an <b>instrument</b>, which is the sound: type, pitch, decay, tone, pitch mapping and MIDI channel. It also gets a <b>rhythm</b>, which is the pattern. The patch grid sets which instrument each rhythm plays. Several rhythms can share one conga, and an instrument can sit unused. A rhythm always takes the shade of the instrument it plays.</p>
   <p><b>How it works.</b> Each rhythm is a ring of steps. By default all rhythms share one cycle, so 3, 4 and 5 steps give a true 3:4:5. Each step's <b>petal length</b> is its Barlow indispensability. Barlow split a meter into layers of prime factors (12 = 2·2·3 or 3·2·2…) and ranked every pulse by how much the meter depends on it. In <b>Barlow</b> mode, Density turns pulses on in that rank order, so sweeping it walks down the rhythm tree, and the strata chips change how it branches. In <b>Euclid</b> mode, onsets are spread evenly instead. <b>Lock</b> makes a rhythm avoid (or join) the hits of the rhythms above it, which is how hand-drum ensembles interlock.</p>
-  <p><b>Reading a petal.</b> The filled part is its firing chance, the fill brightness is its velocity, and a faint stub is its ghost chance. Tails show the ring-out time, and the dots near the hub trace the pitch. When <b>Strokes</b> is on, weight also picks the stroke: open on strong pulses, muted in the middle, slap on weak ones. Amber values are ones changed from their defaults. A rhythm's <b>Length</b> follows the global Cycle until you change it. It then reads "Custom", runs as a polymeter against the others, and gets its own playhead in the Bloom (marked ′ in the hub). Flipping a step moves Density to match. Drag a knob or value vertically (shift for fine control) and double-click it to reset.</p>
+  <p><b>Reading a petal.</b> The filled part is its firing chance, the fill brightness is its velocity, and a faint stub is its ghost chance. Tails show the ring-out time, and the dots near the hub trace the pitch. When <b>Strokes</b> is on, weight also picks the stroke: open on strong pulses, muted in the middle, slap on weak ones. Values in bright ink are ones changed from their defaults; grey ones are still at default. A rhythm's <b>Length</b> follows the global Cycle until you change it. It then reads "Custom", runs as a polymeter against the others, and gets its own playhead in the Bloom (marked ′ in the hub). Flipping a step moves Density to match. Drag a knob or value vertically (shift for fine control) and double-click it to reset.</p>
   <p><b>Keys.</b> <kbd>Space</kbd> play · <kbd>F</kbd> fill (hold) · <kbd>D</kbd> drop (hold) · <kbd>[</kbd> <kbd>]</kbd> energy · <kbd>1</kbd>–<kbd>8</kbd> recall scene at the next cycle · <kbd>⇧1</kbd>–<kbd>⇧8</kbd> store scene · <kbd>Q</kbd>–<kbd>I</kbd> mute rhythms 1–8 · <kbd>P</kbd> perform · <kbd>⌘Z</kbd> undo</p>
 </footer>
 
@@ -765,12 +772,12 @@ function start() {
   RT.forEach(r => (r.nextIdx = 0));
   playing = true;
   tick();
-  $("play").textContent = "STOP"; $("play").classList.add("on");
+  $("play").textContent = "Stop"; $("play").classList.add("on");
 }
 function stop() {
   if (ac) frozenBeats = posAt(ac.currentTime);
   playing = false; pendingScene = null;
-  $("play").textContent = "PLAY"; $("play").classList.remove("on");
+  $("play").textContent = "Play"; $("play").classList.remove("on");
 }
 function rebaseClock() { if (playing) { const now = ac.currentTime; clock.pos0 = posAt(now); clock.t0 = now; } }
 const resyncIdx = ri => { const v = S.rhythms[ri]; if (playing) RT[ri].nextIdx = Math.ceil((posAt(ac.currentTime + LOOKAHEAD) / lenOf(v)) * v.steps - 1e-9); };
@@ -975,13 +982,14 @@ function arcPath(r, d0, d1) {
 // Knob: drag vertically (shift = fine), wheel, double-click resets.
 function makeKnob(o) {
   const root = el("div", { className: "knob" + (o.size ? " " + o.size : ""), title: o.title || "" },
-    `<div class="klab">${o.label}</div><svg viewBox="0 0 48 48"><path class="kt"/><path class="ka"/><line class="kp" x1="24" y1="24"/></svg><div class="kv"></div>`);
+    `<div class="klab">${o.label}</div><svg viewBox="0 0 48 48"><path class="kt"/><path class="ka"/><circle class="kd" cx="24" cy="24" r="13"/><line class="kp"/></svg><div class="kv"></div>`);
   const [kt, ka, kp] = root.querySelectorAll("path,line"), kv = root.querySelector(".kv");
   kt.setAttribute("d", arcPath(18, 135, 405));
   function update() {
     const v = o.get(), max = val(o.max), t = max > o.min ? (v - o.min) / (max - o.min) : 0, a = 135 + t * 270, a0 = o.bipolar ? 270 : 135;
     ka.setAttribute("d", arcPath(18, Math.min(a0, a), Math.max(a0, a)));
-    const [px, py] = polar(24, 24, 15, a); kp.setAttribute("x2", px); kp.setAttribute("y2", py);
+    const [qx, qy] = polar(24, 24, 4, a), [px, py] = polar(24, 24, 11, a);
+    kp.setAttribute("x1", qx); kp.setAttribute("y1", qy); kp.setAttribute("x2", px); kp.setAttribute("y2", py);
     kv.textContent = o.fmt ? o.fmt(v) : v;
     root.classList.toggle("lit", o.def !== undefined && Math.abs(v - val(o.def)) > 1e-9);
   }
@@ -1361,12 +1369,11 @@ function fit(cv) {
 }
 function rgba(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${clamp(a, 0, 1)})`; }
 function sector(g, cx, cy, r0, r1, a0, a1) { g.beginPath(); g.arc(cx, cy, r1, a0, a1); g.arc(cx, cy, r0, a1, a0, true); g.closePath(); }
-// Chalk line: a wide pale stroke hollowed by a thin slate stroke, giving the double-line look.
-const SLATE = "#2c2d2b";
+// Hairline in the ink color. SLATE is the surface leaves are punched out of.
+let SLATE = "#1d1d1c", WELL = "#161615";
 function chalk(g, d, alpha, w = 1) {
   g.lineJoin = "round"; g.lineCap = "round";
-  g.strokeStyle = `rgba(240,238,230,${alpha})`; g.lineWidth = 3.2 * d * w; g.stroke();
-  g.strokeStyle = SLATE; g.lineWidth = 1.1 * d * w; g.stroke();
+  g.strokeStyle = `rgba(236,235,230,${alpha})`; g.lineWidth = 1.1 * d * w; g.stroke();
 }
 function chalkRing(g, cx, cy, r, d, alpha, w) { g.beginPath(); g.arc(cx, cy, r, 0, TAU); chalk(g, d, alpha, w); }
 
@@ -1405,7 +1412,7 @@ function drawPetals(g, ri, cx, cy, r0, r1, d, now, o) {
   for (let i = 0; i < N; i++) {
     const a0 = start(i) + gap, a1 = start(i) + s - gap, rt = tip(i), w = c.w[i], on = r.anim[i];
     sector(g, cx, cy, r0, rt, a0, a1);
-    g.strokeStyle = `rgba(240,238,230,${o.outline})`; g.lineWidth = d; g.stroke();
+    g.strokeStyle = `rgba(236,235,230,${o.outline})`; g.lineWidth = d; g.stroke();
     if (E.ghost > 0 && on < 0.95) { sector(g, cx, cy, r0, r0 + (rt - r0) * E.ghost * 0.6, a0, a1); g.fillStyle = rgba(col, 0.22 * (1 - on) * dim); g.fill(); }
     if (on > 0.01) {
       const vel = nominalVel(v, w), prob = clamp(v.chance * (1 - E.weakDrop * (1 - w)), 0, 1);
@@ -1414,7 +1421,7 @@ function drawPetals(g, ri, cx, cy, r0, r1, d, now, o) {
       sector(g, cx, cy, r0, r0 + (rt - r0) * on, a0 + slide, a1 + slide);
       chalk(g, d, 0.92 * on * dim, o.lw);
     }
-    if (v.ov[i] === "1") { sector(g, cx, cy, r0, rt, a0, a1); g.strokeStyle = "rgba(236,232,222,.9)"; g.lineWidth = 1.5 * d; g.stroke(); }
+    if (v.ov[i] === "1") { sector(g, cx, cy, r0, rt, a0, a1); g.strokeStyle = "rgba(236,235,230,.9)"; g.lineWidth = 1.5 * d; g.stroke(); }
     const h = r.hits[i];
     if (h) {
       const age = now - h.t, life = dec + 0.08;
@@ -1422,8 +1429,8 @@ function drawPetals(g, ri, cx, cy, r0, r1, d, now, o) {
         const k = Math.pow(1 - age / life, 1.6) * h.vel;
         g.globalCompositeOperation = "lighter";
         sector(g, cx, cy, r0, rt + o.flare * d * k, a0, a1);
-        g.fillStyle = rgba(col, 0.75 * k); g.fill();
-        if (o.halo) { sector(g, cx, cy, r0 - 4 * d, rt + o.flare * 2 * d * k, a0 - gap * 3, a1 + gap * 3); g.fillStyle = rgba(col, 0.18 * k); g.fill(); }
+        g.fillStyle = rgba(col, 0.5 * k); g.fill();
+        if (o.halo) { sector(g, cx, cy, r0 - 3 * d, rt + o.flare * 1.5 * d * k, a0 - gap * 2, a1 + gap * 2); g.fillStyle = rgba(col, 0.08 * k); g.fill(); }
         g.globalCompositeOperation = "source-over";
       }
     }
@@ -1463,8 +1470,8 @@ function drawFan(ri, now) {
   g.lineTo(tx + Math.cos(n) * 4 * d, ty + Math.sin(n) * 4 * d);
   g.lineTo(tx - Math.cos(n) * 4 * d, ty - Math.sin(n) * 4 * d);
   g.closePath(); g.fill();
-  g.fillStyle = "#ece8de"; g.textAlign = "center"; g.textBaseline = "middle";
-  g.font = `600 ${12 * d}px "JetBrains Mono", monospace`;
+  g.fillStyle = "#ecebe6"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = `600 ${12 * d}px "IBM Plex Mono", monospace`;
   g.fillText(`${r.c.hits}/${v.steps}`, cx, cy);
 }
 
@@ -1493,10 +1500,10 @@ function drawTree(ri, now) {
     groups *= f[L];
   }
   chalk(g, d, 0.8, 0.75);
-  g.font = `${9 * d}px "JetBrains Mono", monospace`; g.textBaseline = "middle"; g.textAlign = "left";
+  g.font = `${9 * d}px "IBM Plex Mono", monospace`; g.textBaseline = "middle"; g.textAlign = "left";
   for (const [x, y, fac] of nodes) {
-    g.fillStyle = "rgba(240,238,230,0.95)"; g.beginPath(); g.arc(x, y, 2.6 * d, 0, TAU); g.fill();
-    g.fillStyle = "rgba(240,238,230,0.55)"; g.fillText(fac, x + 5 * d, y + 1 * d);
+    g.fillStyle = "rgba(236,235,230,0.95)"; g.beginPath(); g.arc(x, y, 2.6 * d, 0, TAU); g.fill();
+    g.fillStyle = "rgba(236,235,230,0.55)"; g.fillText(fac, x + 5 * d, y + 1 * d);
   }
   const cur = playing ? mod(Math.floor(phaseOf(v, now) * N), N) : -1;
   g.textAlign = "center"; g.textBaseline = "top";
@@ -1505,8 +1512,8 @@ function drawTree(ri, now) {
     if (i === cur) { g.fillStyle = rgba(col, 0.35); g.beginPath(); g.arc(x, leafY, rad + 5 * d, 0, TAU); g.fill(); }
     g.beginPath(); g.arc(x, leafY, rad, 0, TAU);
     g.fillStyle = on > 0.5 ? col : SLATE; g.fill();
-    g.strokeStyle = "rgba(240,238,230,0.9)"; g.lineWidth = 1.2 * d; g.stroke();
-    if (N <= 24) { g.fillStyle = on > 0.5 ? "rgba(240,238,230,0.75)" : "rgba(240,238,230,0.35)"; g.fillText(c.raw[i], x, leafY + rad + 3 * d); }
+    g.strokeStyle = "rgba(236,235,230,0.9)"; g.lineWidth = 1.2 * d; g.stroke();
+    if (N <= 24) { g.fillStyle = on > 0.5 ? "rgba(236,235,230,0.75)" : "rgba(236,235,230,0.35)"; g.fillText(c.raw[i], x, leafY + rad + 3 * d); }
   }
 }
 
@@ -1517,12 +1524,12 @@ function drawBloom(now) {
   let kEnv = 0;
   for (const k of kicks) if (k.t <= now) kEnv = Math.max(kEnv, Math.exp(-(now - k.t) / 0.16) * k.vel);
   const glow = g.createRadialGradient(cx, cy, 0, cx, cy, R * 1.05);
-  glow.addColorStop(0, `rgba(255,236,210,${0.035 + 0.08 * kEnv})`);
+  glow.addColorStop(0, `rgba(255,255,255,${0.015 + 0.05 * kEnv})`);
   glow.addColorStop(1, "rgba(0,0,0,0)");
   g.fillStyle = glow; g.fillRect(0, 0, W, H);
   for (const c of coincidences) {
     const a = c.pos * TAU - Math.PI / 2;
-    g.strokeStyle = `rgba(236,232,222,${0.05 * c.n})`; g.lineWidth = d * c.n * 0.7;
+    g.strokeStyle = `rgba(236,235,230,${0.05 * c.n})`; g.lineWidth = d * c.n * 0.7;
     g.beginPath(); g.moveTo(cx + Math.cos(a) * band0 * 0.9, cy + Math.sin(a) * band0 * 0.9); g.lineTo(cx + Math.cos(a) * (R + 10 * d), cy + Math.sin(a) * (R + 10 * d)); g.stroke();
   }
   const a = mod(beatsNow(now) / S.beats, 1) * TAU - Math.PI / 2;
@@ -1544,19 +1551,19 @@ function drawBloom(now) {
       g.beginPath(); g.moveTo(cx + Math.cos(pa) * r0, cy + Math.sin(pa) * r0); g.lineTo(cx + Math.cos(pa) * r1, cy + Math.sin(pa) * r1); g.stroke();
     }
   }
-  g.strokeStyle = playing ? "rgba(236,232,222,0.55)" : "rgba(236,232,222,0.15)"; g.lineWidth = 1.3 * d;
+  g.strokeStyle = playing ? "rgba(236,235,230,0.55)" : "rgba(236,235,230,0.15)"; g.lineWidth = 1.3 * d;
   g.beginPath(); g.moveTo(cx + Math.cos(a) * band0, cy + Math.sin(a) * band0); g.lineTo(cx + Math.cos(a) * (R + 10 * d), cy + Math.sin(a) * (R + 10 * d)); g.stroke();
   // hub: the polyrhythm signature, each number in the color of the instrument it plays
-  g.fillStyle = SLATE; g.beginPath(); g.arc(cx, cy, band0 * 0.86, 0, TAU); g.fill();
+  g.fillStyle = WELL; g.beginPath(); g.arc(cx, cy, band0 * 0.86, 0, TAU); g.fill();
   g.textBaseline = "middle"; g.textAlign = "left";
   const big = Math.max(11, Math.min(30, band0 / d / (1.2 + n * 0.55))) * d;
-  g.font = `700 ${big}px "Archivo", sans-serif`;
-  const parts = []; S.rhythms.forEach((v, ri) => { if (ri) parts.push([":", "#57544d"]); parts.push([v.steps + (v.length ? "'" : ""), audible(v) ? COLORS[v.inst] : "#57544d"]); });
+  g.font = `300 ${big}px "Inter", sans-serif`;
+  const parts = []; S.rhythms.forEach((v, ri) => { if (ri) parts.push([":", "#4b4a46"]); parts.push([v.steps + (v.length ? "'" : ""), audible(v) ? COLORS[v.inst] : "#4b4a46"]); });
   const tw = parts.reduce((s, [t]) => s + g.measureText(t).width, 0);
   let x = cx - tw / 2;
   for (const [t, col] of parts) { g.fillStyle = col; g.fillText(t, x, cy - big * 0.15); x += g.measureText(t).width; }
-  g.textAlign = "center"; g.font = `500 ${Math.max(9 * d, big * 0.36)}px "JetBrains Mono", monospace`;
-  g.fillStyle = perf.fill || perf.drop ? "#f5b25a" : "#8a867c";
+  g.textAlign = "center"; g.font = `500 ${Math.max(9 * d, big * 0.36)}px "IBM Plex Mono", monospace`;
+  g.fillStyle = perf.fill || perf.drop ? "#ecebe6" : "#7a7974";
   g.fillText(perf.fill ? "FILL" : perf.drop ? "DROP" : `energy ${PCT(S.energy)}`, cx, cy + big * 0.7);
 }
 
@@ -1584,6 +1591,8 @@ function frame() {
 (function boot() {
   const cs = getComputedStyle(document.documentElement);
   COLORS = [...Array(MAX).keys()].map(i => cs.getPropertyValue(`--v${i}`).trim());
+  SLATE = cs.getPropertyValue("--panel").trim();
+  WELL = cs.getPropertyValue("--well").trim();
   let st = null;
   if (location.hash.length > 1) { try { st = decodeState(location.hash.slice(1)); } catch (e) { console.warn("Ignoring bad state in URL", e); } }
   S = sanitize(st || presetState(DEFAULT_PRESET));
