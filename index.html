@@ -476,7 +476,7 @@ const PRESETS = {
     V("conga", { length: 8, steps: 16, density: 0.44, lock: "avoid", spin: -1, chance: 0.9, ghost: 0.35, ratchetChance: 0.08, pitchSrc: "weight", pitchRange: 5, note: 55, pan: -0.25 }),
   ]},
   // Kick, snare and sub live on an 8-beat clock (half time); 2-3 clave and hats stay at full speed.
-  "Half-time dub clave": { bpm: 140, room: 0.3, pad: "fog", padKey: 9, padLevel: 0.45, voices: [
+  "Half-time dub clave": { bpm: 140, room: 0.3, voices: [
     V("kick", { length: 8, steps: 16, pattern: "x.........x.....", accent: 0.3, decay: 0.55 }),
     V("snare", { length: 8, steps: 16, pattern: "........x.......", ghost: 0.3, ratchetChance: 0.06, tone: 0.45 }),
     V("clave", { pattern: "..x.x...x..x..x.", accent: 0.3, level: 0.55, pan: -0.2 }),
@@ -485,7 +485,7 @@ const PRESETS = {
   ]},
   // A five-beat bar (5·2 kick on every beat), a 3+3+4+3+3+4 clave, a 4-beat conga drifting backward
   // through the five and a 2½-beat shaker cycling forward.
-  "Bossa in five": { bpm: 96, beats: 5, pad: "glass", padKey: 2, padLevel: 0.35, voices: [
+  "Bossa in five": { bpm: 96, beats: 5, voices: [
     V("kick", { steps: 10, density: 0.5, accent: 0.4 }),
     V("clave", { steps: 20, pattern: "x..x..x...x..x..x...", accent: 0.3, level: 0.6, pan: 0.25 }),
     V("conga", { length: 4, steps: 16, density: 0.4, lock: "avoid", spin: -1, chance: 0.85, ghost: 0.3, ratchetChance: 0.1, pitchSrc: "weight", pitchRange: 5, pan: -0.25 }),
