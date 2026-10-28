@@ -185,8 +185,8 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   <div class="gscreen" id="timeScreen"></div>
   <div class="vsep"></div>
   <div class="grp">
-    <button class="btn hold" id="fillBtn" title="Hold (F): double density in rank order, more ratchets">FILL</button>
-    <button class="btn hold" id="dropBtn" title="Hold (D): strip every rhythm to its single strongest pulse">DROP</button>
+    <button class="btn hold" id="fillBtn" title="Hold F">FILL</button>
+    <button class="btn hold" id="dropBtn" title="Hold D">DROP</button>
   </div>
   <div class="vsep"></div>
   <div class="grp">
@@ -200,55 +200,52 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   <div class="col">
     <div class="row">
       <select id="presets"></select>
-      <button class="btn" id="undo" title="Undo (⌘Z)">↶</button>
-      <button class="btn" id="redo" title="Redo (⇧⌘Z)">↷</button>
-      <button class="btn" id="mutateAll" title="Randomize every rhythm">Mutate</button>
+      <button class="btn" id="undo" title="⌘Z">↶</button>
+      <button class="btn" id="redo" title="⇧⌘Z">↷</button>
+      <button class="btn" id="mutateAll">Mutate</button>
     </div>
     <div class="row">
       <button class="btn" id="save">Save</button>
       <button class="btn" id="share">Copy link</button>
-      <button class="btn" id="bounce" title="Render 4 cycles to a WAV file">Bounce WAV</button>
-      <button class="btn" id="midiFile" title="Export 4 cycles as a MIDI file">MIDI file</button>
+      <button class="btn" id="bounce" title="4 cycles">Bounce WAV</button>
+      <button class="btn" id="midiFile" title="4 cycles">MIDI file</button>
     </div>
   </div>
   <div class="col">
     <div class="row">
       <button class="btn" id="midiBtn">MIDI out</button>
       <select id="midiOut" hidden></select>
-      <button class="btn on" id="synthBtn" title="Internal synth on/off">Synth</button>
+      <button class="btn on" id="synthBtn">Synth</button>
     </div>
-    <div class="row"><button class="btn" id="performBtn" title="Perform mode (P)">Perform</button></div>
+    <div class="row"><button class="btn" id="performBtn" title="P">Perform</button></div>
   </div>
 </header>
 
 <div class="stage">
-  <div class="bloomWrap"><canvas id="bloom"></canvas><div class="bloomHint">tap a petal to flip it · drag out for density · drag around to rotate</div></div>
+  <div class="bloomWrap"><canvas id="bloom"></canvas></div>
   <div class="rack">
     <section class="panel voices">
       <div class="ptitle">
         <h2>Voices</h2>
-        <div class="stepper" title="How many rhythm + instrument pairs">
+        <div class="stepper">
           <button class="btn" id="countDown">−</button><span id="countVal">4</span><button class="btn" id="countUp">+</button>
         </div>
-        <span class="hint">Each voice adds one rhythm and one instrument.</span>
+        
       </div>
     </section>
-    <div class="ptitle"><h2>Rhythms</h2><span class="hint">Patterns. The shade is the instrument a rhythm plays.</span></div>
+    <div class="ptitle"><h2>Rhythms</h2></div>
     <div class="rhythms" id="rhythms"></div>
     <section class="panel">
-      <div class="ptitle"><h2>Instruments</h2><span class="hint">Sounds. Click a number to hear it.</span></div>
+      <div class="ptitle"><h2>Instruments</h2></div>
       <div class="instGrid" id="instGrid"></div>
-      <div class="ptitle sub"><h2>Patch</h2><span class="hint">Each rhythm row plays one instrument column.</span></div>
+      <div class="ptitle sub"><h2>Patch</h2></div>
       <div class="patch" id="patch"></div>
     </section>
   </div>
 </div>
 
 <footer>
-  <p><b>Instruments and rhythms.</b> Set how many slots you want (1–8). Each slot gets an <b>instrument</b>, which is the sound: type, pitch, decay, tone, pitch mapping and MIDI channel. It also gets a <b>rhythm</b>, which is the pattern. The patch grid sets which instrument each rhythm plays. Several rhythms can share one conga, and an instrument can sit unused. A rhythm always takes the shade of the instrument it plays.</p>
-  <p><b>How it works.</b> Each rhythm is a ring of steps. By default all rhythms share one cycle, so 3, 4 and 5 steps give a true 3:4:5. Each step's <b>petal length</b> is its Barlow indispensability. Barlow split a meter into layers of prime factors (12 = 2·2·3 or 3·2·2…) and ranked every pulse by how much the meter depends on it. In <b>Barlow</b> mode, Density turns pulses on in that rank order, so sweeping it walks down the rhythm tree, and the strata chips change how it branches. In <b>Euclid</b> mode, onsets are spread evenly instead. <b>Lock</b> makes a rhythm avoid (or join) the hits of the rhythms above it, which is how hand-drum ensembles interlock.</p>
-  <p><b>Reading a petal.</b> The filled part is its firing chance, the fill brightness is its velocity, and a faint stub is its ghost chance. Tails show the ring-out time, and the dots near the hub trace the pitch. When <b>Strokes</b> is on, weight also picks the stroke: open on strong pulses, muted in the middle, slap on weak ones. <b>Grid</b> sets steps per beat, so a 7-beat cycle at 4 / beat gives 28 steps layered 7·2·2. Typing a step count instead makes the rhythm <b>Free</b>: a tuplet spread over its length. Values in bright ink are ones changed from their defaults; grey ones are still at default. A rhythm's <b>Length</b> follows the global Cycle until you change it. It then shows its own beat count, runs as a polymeter against the others, and gets its own playhead in the Bloom (marked ′ in the hub). Flipping a step moves Density to match. Click any value to pick from a list, a row of buttons or a slider; or drag it up and down (shift for fine control), or scroll on it.</p>
-  <p><b>Keys.</b> <kbd>Space</kbd> play · <kbd>F</kbd> fill (hold) · <kbd>D</kbd> drop (hold) · <kbd>[</kbd> <kbd>]</kbd> energy · <kbd>1</kbd>–<kbd>8</kbd> recall scene at the next cycle · <kbd>⇧1</kbd>–<kbd>⇧8</kbd> store scene · <kbd>Q</kbd>–<kbd>I</kbd> mute rhythms 1–8 · <kbd>P</kbd> perform · <kbd>⌘Z</kbd> undo</p>
+  <kbd>Space</kbd> play · <kbd>F</kbd> fill · <kbd>D</kbd> drop · <kbd>[</kbd><kbd>]</kbd> energy · <kbd>1</kbd>–<kbd>8</kbd> scene · <kbd>⇧1</kbd>–<kbd>⇧8</kbd> store · <kbd>Q</kbd>–<kbd>I</kbd> mute · <kbd>P</kbd> perform · <kbd>⌘Z</kbd> undo
 </footer>
 
 <script>
@@ -451,36 +448,14 @@ const TEMPLATES = [
   V("bongo", { steps: 7, factors: [7], density: 0.43, lock: "avoid", ghost: 0.2, pan: 0.15, level: 0.6 }),
 ];
 const PRESETS = {
-  "Sub tree": { bpm: 92, voices: TEMPLATES.slice(0, 4) },
-  "Tree of 16": { bpm: 96, voices: [
-    V("kick", { steps: 8, factors: [2,2,2], density: 0.25, accent: 0.5 }),
-    V("conga", { density: 0.45, rotation: 2, pitchSrc: "weight", pitchRange: 7, ghost: 0.3, swing: 0.12, note: 55, pan: -0.2 }),
-    V("clave", { mode: "euclid", density: 0.3125, accent: 0.4, pan: 0.25 }),
-    V("shaker", { density: 0.5, weakDrop: 0.4, level: 0.45, swing: 0.12, pan: 0.15 }),
-  ]},
-  "One conga, three rhythms": { bpm: 104, voices: [
-    V("kick", { density: 0.19, accent: 0.5 }),
-    V("conga", { density: 0.25, pitchSrc: "weight", pitchRange: 7, note: 52 }),
-    { ...V("conga", { density: 0.3, rotation: 3, lock: "avoid", ghost: 0.2 }), shareWith: 1 },
-    { ...V("conga", { steps: 12, factors: [2,2,3], density: 0.25, lock: "avoid" }), shareWith: 1 },
-  ]},
-  "Bembé engine (12)": { bpm: 112, voices: [
-    V("kick", { steps: 12, factors: [2,2,3], density: 0.34 }),
-    V("conga", { steps: 12, factors: [3,2,2], density: 0.5, lock: "avoid", ghost: 0.25, pitchSrc: "weight", pitchRange: 5, pan: -0.2 }),
-    V("cowbell", { steps: 12, factors: [2,2,3], mode: "euclid", density: 0.58, accent: 0.5, pan: 0.25 }),
-    V("shaker", { steps: 12, factors: [2,2,3], density: 0.75, weakDrop: 0.5, level: 0.45 }),
-  ]},
-  "3 : 4 : 5 : 7": { bpm: 84, beats: 3, voices: [
-    V("kick", { steps: 6, factors: [2,3], density: 0.5 }),
-    V("conga", { steps: 8, factors: [2,2,2], density: 0.62, pitchSrc: "weight", pitchRange: 5, pan: -0.25 }),
-    V("clave", { steps: 10, factors: [2,5], density: 0.5, pitchSrc: "weight", pitchRange: 7, scale: "fifths", pan: 0.25 }),
-    V("hat", { steps: 14, factors: [2,7], density: 0.43, level: 0.45 }),
-  ]},
-  "Prime weather": { bpm: 72, driftEvery: 2, voices: [
-    V("kick", { steps: 5, density: 0.4, drift: 0.3 }),
-    V("conga", { steps: 7, density: 0.43, pitchSrc: "weight", pitchRange: 7, drift: 0.5, pan: -0.25 }),
-    V("clave", { steps: 11, density: 0.55, pitchSrc: "step", pitchRange: 12, scale: "majpenta", drift: 0.6, pan: 0.3 }),
-    V("bongo", { steps: 13, density: 0.46, lock: "avoid", drift: 0.6, ghost: 0.2, pan: 0.1 }),
+  // Cascara on a low shell and 2-3 son on a high block, a 6-beat bongo turning forward two steps a lap
+  // and a 2-beat conga turning backward every half bar.
+  "Cascara crossfire": { bpm: 112, voices: [
+    V("kick", { density: 0.25, accent: 0.4 }),
+    V("clave", { pattern: "x.xx.x.xx.x.x.x.", note: 82, decay: 0.2, tone: 0.3, accent: 0.4, chance: 0.92, ghost: 0.15, level: 0.5, pan: -0.3 }),
+    V("clave", { pattern: "..x.x...x..x..x.", note: 96, accent: 0.3, level: 0.6, pan: 0.3 }),
+    V("bongo", { length: 6, steps: 24, density: 0.3, spin: 2, lock: "avoid", chance: 0.85, ghost: 0.25, ratchetChance: 0.15, pan: 0.15, level: 0.6 }),
+    V("conga", { length: 2, steps: 8, density: 0.38, spin: -1, lock: "avoid", chance: 0.9, ghost: 0.3, ratchetChance: 0.08, pitchSrc: "weight", pitchRange: 5, pan: -0.15 }),
   ]},
   // Steady four-on-the-floor, a real son clave, a conga on a half-time 8-beat clock turning forward,
   // and a bongo in 3 against the 4 turning backward.
@@ -516,18 +491,8 @@ const PRESETS = {
     V("conga", { length: 4, steps: 16, density: 0.4, lock: "avoid", spin: -1, chance: 0.85, ghost: 0.3, ratchetChance: 0.1, pitchSrc: "weight", pitchRange: 5, pan: -0.25 }),
     V("shaker", { length: 2.5, steps: 10, density: 0.6, spin: 1, weakDrop: 0.3, chance: 0.85, ratchetChance: 0.12, ratchet: 3, level: 0.4, pan: 0.15 }),
   ]},
-  // Cascara on a low shell and 2-3 son on a high block, a 6-beat bongo turning forward two steps a lap
-  // and a 2-beat conga turning backward every half bar.
-  "Cascara crossfire": { bpm: 112, voices: [
-    V("kick", { density: 0.25, accent: 0.4 }),
-    V("clave", { pattern: "x.xx.x.xx.x.x.x.", note: 82, decay: 0.2, tone: 0.3, accent: 0.4, chance: 0.92, ghost: 0.15, level: 0.5, pan: -0.3 }),
-    V("clave", { pattern: "..x.x...x..x..x.", note: 96, accent: 0.3, level: 0.6, pan: 0.3 }),
-    V("bongo", { length: 6, steps: 24, density: 0.3, spin: 2, lock: "avoid", chance: 0.85, ghost: 0.25, ratchetChance: 0.15, pan: 0.15, level: 0.6 }),
-    V("conga", { length: 2, steps: 8, density: 0.38, spin: -1, lock: "avoid", chance: 0.9, ghost: 0.3, ratchetChance: 0.08, pitchSrc: "weight", pitchRange: 5, pan: -0.15 }),
-  ]},
-  "Full kit (8)": { bpm: 98, voices: TEMPLATES },
 };
-const DEFAULT_PRESET = "Sub tree";
+const DEFAULT_PRESET = "Cascara crossfire";
 
 let S;
 const RT = Array.from({ length: MAX }, () => ({ hits: [], nextIdx: 0, dirty: true, anim: null, rotDisp: 0, lastRot: 0 }));
@@ -1276,21 +1241,21 @@ function makeColumn(title, rows) {
 const PAN = x => (Math.abs(x) < 0.01 ? "C" : (x < 0 ? "L" : "R") + Math.round(Math.abs(x) * 100));
 // rhythm controls: pattern only
 const R_SPEC = {
-  steps: { label: "Steps", type: "num", min: 2, max: MAX_STEPS, step: 1, def: 16, title: "Editing steps directly makes the rhythm free (a tuplet over its length)" },
-  grid: { label: "Grid", type: "enum", def: 4, opts: [[0, "Free"], ...GRIDS.map(g => [g, g + " / beat"])], title: "Steps per beat. Steps = length × grid, and the strata start with the beat count." },
-  length: { label: "Length", type: "num", min: 0, max: 16, step: 0.5, def: 0, fmt: x => (x ? `${x} beats` : `global ${S.beats}`), title: "Cycle length for this rhythm. 0 follows the global Cycle; anything else is a polymeter override." },
+  steps: { label: "Steps", type: "num", min: 2, max: MAX_STEPS, step: 1, def: 16, title: "Setting steps makes the rhythm free" },
+  grid: { label: "Grid", type: "enum", def: 4, opts: [[0, "Free"], ...GRIDS.map(g => [g, g + " / beat"])], title: "Steps per beat" },
+  length: { label: "Length", type: "num", min: 0, max: 16, step: 0.5, def: 0, fmt: x => (x ? `${x} beats` : `global ${S.beats}`), title: "0 follows Cycle" },
   mode: { label: "Mode", type: "enum", def: "barlow", opts: [["barlow", "Barlow"], ["euclid", "Euclid"]] },
-  density: { label: "Density", type: "num", min: 0, max: 1, step: 0.005, def: 0.4, title: "Turns pulses on in indispensability order (drag a petal outward too)" },
+  density: { label: "Density", type: "num", min: 0, max: 1, step: 0.005, def: 0.4 },
   rotation: { label: "Rotate", type: "num", min: 0, step: 1, def: 0 },
-  accent: { label: "Vel depth", type: "num", min: 0, max: 1, step: 0.01, def: 0.7, fmt: PCT, title: "How much indispensability shapes velocity" },
+  accent: { label: "Vel depth", type: "num", min: 0, max: 1, step: 0.01, def: 0.7, fmt: PCT },
   chance: { label: "Chance", type: "num", min: 0, max: 1, step: 0.01, def: 1, fmt: PCT },
-  weakDrop: { label: "Weak drop", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Low-rank hits skip more often" },
-  ghost: { label: "Ghosts", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Quiet notes on empty steps" },
+  weakDrop: { label: "Weak drop", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT },
+  ghost: { label: "Ghosts", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT },
   swing: { label: "Swing", type: "num", min: 0, max: 0.7, step: 0.01, def: 0, fmt: PCT },
   jitter: { label: "Timing", type: "num", min: 0, max: 30, step: 1, def: 0, fmt: x => "±" + x + "ms" },
-  lock: { label: "Lock", type: "enum", def: "free", opts: [["free", "Free"], ["avoid", "Avoid ↑"], ["join", "Join ↑"]], title: "Avoid or join the hits of the rhythms above" },
-  spin: { label: "Spin", type: "num", min: -4, max: 4, step: 1, def: 0, fmt: x => signed(x, "/cyc"), title: "Auto-rotate every cycle" },
-  ratchetChance: { label: "Ratchet", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Chance a hit rolls into repeats" },
+  lock: { label: "Lock", type: "enum", def: "free", opts: [["free", "Free"], ["avoid", "Avoid ↑"], ["join", "Join ↑"]] },
+  spin: { label: "Spin", type: "num", min: -4, max: 4, step: 1, def: 0, fmt: x => signed(x, "/cyc") },
+  ratchetChance: { label: "Ratchet", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT },
   ratchet: { label: "Ratchet ×", type: "num", min: 2, max: 4, step: 1, def: 2 },
   velJitter: { label: "Vel jitter", type: "num", min: 0, max: 1, step: 0.01, def: 0.15, fmt: PCT },
   drift: { label: "Drift", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT },
@@ -1307,7 +1272,7 @@ const I_SPEC = {
   tone: { label: "Tone", type: "num", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT },
   level: { label: "Level", type: "num", min: 0, max: 1, step: 0.01, def: 0.8, fmt: PCT },
   pan: { label: "Pan", type: "num", min: -1, max: 1, step: 0.02, def: 0, fmt: PAN },
-  pitchSrc: { label: "Pitch from", type: "enum", def: "none", opts: [["none", "Fixed"], ["weight", "Weight"], ["velocity", "Velocity"], ["step", "Step"], ["random", "Random"]], title: "Which property of each incoming hit bends the pitch" },
+  pitchSrc: { label: "Pitch from", type: "enum", def: "none", opts: [["none", "Fixed"], ["weight", "Weight"], ["velocity", "Velocity"], ["step", "Step"], ["random", "Random"]] },
   pitchRange: { label: "Range", type: "num", min: -24, max: 24, step: 1, def: 5, fmt: x => signed(x, " st") },
   scale: { label: "Scale", type: "enum", def: "penta", opts: Object.entries(SCALE_LABEL) },
   strokes: { label: "Strokes", type: "enum", def: true, opts: [[true, "By weight"], [false, "Off"]] },
@@ -1385,9 +1350,9 @@ function buildInstrument(ii) {
   const card = el("section", { className: "icard" });
   card.style.setProperty("--vc", vc(ii));
   const head = el("div", { className: "ihead" });
-  const badge = el("button", { className: "badge", textContent: ii + 1, title: "Audition this instrument" });
+  const badge = el("button", { className: "badge", textContent: ii + 1, title: "Play" });
   badge.onclick = () => audition(ii);
-  const type = el("select", { className: "inst", title: "Sound" }, typeOptions());
+  const type = el("select", { className: "inst" }, typeOptions());
   type.onchange = () => setInstParam(ii, "type", type.value);
   const usedBy = el("span", { className: "usedby" });
   head.append(badge, type, usedBy);
@@ -1425,7 +1390,7 @@ function buildPatch() {
   grid.innerHTML = "";
   grid.append(el("span", { className: "pcorner", textContent: "R→I" }));
   for (let ii = 0; ii < n; ii++) {
-    const h = el("button", { className: "phead", title: "Audition" }, `<b style="color:${vc(ii)}">${ii + 1}</b><span class="ptype"></span>`);
+    const h = el("button", { className: "phead", title: "Play" }, `<b style="color:${vc(ii)}">${ii + 1}</b><span class="ptype"></span>`);
     h.onclick = () => audition(ii);
     grid.append(h);
   }
@@ -1444,12 +1409,12 @@ function buildPatch() {
 function buildRhythm(ri) {
   const r = RT[ri], dev = el("section", { className: "dev" });
   const head = el("div", { className: "dhead" });
-  const plays = el("div", { className: "plays", title: "Which instrument this rhythm plays" });
+  const plays = el("div", { className: "plays" });
   const playsName = el("span", { className: "playsName" });
   const readout = el("span", { className: "readout" });
-  const mB = el("button", { className: "btn m", textContent: "M", title: "Mute (" + "QWERTYUI"[ri] + ")" });
-  const sB = el("button", { className: "btn s", textContent: "S", title: "Solo" });
-  const xB = el("button", { className: "btn", textContent: "⚄", title: "Mutate this rhythm" });
+  const mB = el("button", { className: "btn m", textContent: "M", title: "QWERTYUI"[ri] });
+  const sB = el("button", { className: "btn s", textContent: "S" });
+  const xB = el("button", { className: "btn", textContent: "⚄", title: "Mutate" });
   mB.onclick = () => setMute(ri, !S.rhythms[ri].mute);
   sB.onclick = () => { S.rhythms[ri].solo = !S.rhythms[ri].solo; edited(); };
   xB.onclick = () => mutate(ri);
@@ -1473,9 +1438,9 @@ function buildRhythm(ri) {
     controls.push(...rows);
     screen.append(makeColumn(title, rows));
   }
-  const fan = el("canvas", { className: "fan", title: "Tap to flip a step · drag out for density · drag around to rotate" });
+  const fan = el("canvas", { className: "fan" });
   body.append(screen, fan);
-  const foot = el("div", { className: "dfoot" }), chips = el("div", { className: "chips" }), tree = el("canvas", { className: "tree", title: "Barlow tree: leaves are steps, size is indispensability. Click to flip a step." });
+  const foot = el("div", { className: "dfoot" }), chips = el("div", { className: "chips" }), tree = el("canvas", { className: "tree" });
   foot.append(chips, tree);
   dev.append(head, body, foot);
 
@@ -1507,7 +1472,7 @@ function syncRhythmUI(ri) {
   u.chips.innerHTML = "";
   for (const p of permutations(primeFactors(v.steps))) {
     const key = p.join("·"), label = p.length === 1 && p[0] >= 5 ? `${key} (${Array((p[0] - 1) / 2 - 1).fill(2).concat(3).join("+")})` : key;
-    const b = el("button", { className: "chip" + (key === cur ? " on" : ""), textContent: label, title: "Strata, top level first: " + p.map((f, i) => (i ? `each in ${f}` : `${f} parts`)).join(", ") });
+    const b = el("button", { className: "chip" + (key === cur ? " on" : ""), textContent: label });
     b.onclick = () => { v.factors = p; edited(ri); };
     u.chips.append(b);
   }
@@ -1536,19 +1501,19 @@ function buildGlobal() {
   column("timeScreen", "Time", [
     { label: "Tempo", min: 40, max: 200, step: 1, def: 96, fmt: x => x + " bpm", get: () => S.bpm, set: x => { rebaseClock(); S.bpm = x; padNow?.setRate(); changed(); } },
     { label: "Cycle", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); padNow?.setRate(); edited(); } },
-    { label: "Energy", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT, title: "Macro: density, ghosts, ratchets up; weak drop down ([ and ])", get: () => S.energy, set: x => { S.energy = x; edited(); } },
+    { label: "Energy", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT, title: "[ ]", get: () => S.energy, set: x => { S.energy = x; edited(); } },
     { label: "Drift every", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } },
     { label: "Drift steps", type: "enum", def: false, opts: [[false, "Off"], [true, "On"]], get: () => S.driftSteps, set: x => { S.driftSteps = x; changed(); } },
   ]);
   column("padScreen", "Pad", [
-    { label: "Pad", type: "enum", def: "none", opts: Object.entries(PAD_LABEL), title: "Atmospheric backdrop, synthesized in the chosen key", get: () => S.pad, set: x => { S.pad = x; refreshPad(); changed(); } },
+    { label: "Pad", type: "enum", def: "none", opts: Object.entries(PAD_LABEL), get: () => S.pad, set: x => { S.pad = x; refreshPad(); changed(); } },
     { label: "Key", type: "enum", def: 9, opts: KEYS.map((k, i) => [i, k]), get: () => S.padKey, set: x => { S.padKey = x; refreshPad(); changed(); } },
     { label: "Level", min: 0, max: 1, step: 0.01, def: 0.4, fmt: PCT, get: () => S.padLevel, set: x => { S.padLevel = x; mix(); changed(); } },
   ]);
   column("mixScreen", "Mix", [
     { label: "Drive", min: 0, max: 1, step: 0.01, def: 0.25, fmt: PCT, get: () => S.drive, set: x => { S.drive = x; mix(); changed(); } },
     { label: "Room", min: 0, max: 1, step: 0.01, def: 0.15, fmt: PCT, get: () => S.room, set: x => { S.room = x; mix(); changed(); } },
-    { label: "Duck", min: 0, max: 1, step: 0.01, def: 0.35, fmt: PCT, title: "Kick instruments duck the others", get: () => S.duck, set: x => { S.duck = x; changed(); } },
+    { label: "Duck", min: 0, max: 1, step: 0.01, def: 0.35, fmt: PCT, get: () => S.duck, set: x => { S.duck = x; changed(); } },
     { label: "Master", min: 0, max: 1, step: 0.01, def: 0.8, fmt: PCT, get: () => S.master, set: x => { S.master = x; mix(); changed(); } },
   ]);
 
@@ -1556,7 +1521,7 @@ function buildGlobal() {
   $("countUp").onclick = () => setCount(count() + 1);
 
   for (let i = 0; i < 8; i++) {
-    const b = el("button", { className: "scene", textContent: i + 1, title: "Click: recall at next cycle (empty: store) · Shift-click: store · Alt-click: clear" });
+    const b = el("button", { className: "scene", textContent: i + 1, title: "⇧ store · ⌥ clear" });
     b.onclick = e => (e.altKey ? clearScene(i) : e.shiftKey ? saveScene(i) : recallScene(i));
     $("scenes").append(b);
   }
