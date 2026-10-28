@@ -481,6 +481,23 @@ const PRESETS = {
     V("bongo", { steps: 12, pattern: "xxx.xx.x.xx.", accent: 0.35, note: 64, decay: 0.5, pan: -0.55 }),
     V("bongo", { length: 24, steps: 48, pattern: "xxx.xx.x.xx.".repeat(4), spin: 1, accent: 0.35, note: 71, decay: 0.5, pan: 0.55 }),
   ]},
+  // Everything moves except the frame. Kick and clave never change, so every other layer is heard
+  // against them. Chance and weak drop only thin the weak steps, so each layer keeps its skeleton.
+  // Lengths of 2, 3 and 6 beats against 4 all meet every 12 beats. The sub avoids the kick, and each
+  // moving layer sits in its own register and pan. Drift is slow and never changes step counts.
+  "Weather": { bpm: 108, room: 0.22, energy: 0.55, driftEvery: 8, voices: [
+    V("kick", { density: 0.25, accent: 0.4, decay: 0.45 }),
+    V("clave", { pattern: "x..x..x...x.x...", accent: 0.3, ghost: 0.08, note: 91, level: 0.5, pan: 0.3 }),
+    V("sub", { density: 0.19, lock: "avoid", chance: 0.85, weakDrop: 0.5, drift: 0.25,
+      pitchSrc: "weight", pitchRange: -5, scale: "penta", note: 31, decay: 0.3, strokes: false, level: 0.7 }),
+    V("conga", { length: 3, steps: 12, density: 0.45, spin: 1, chance: 0.85, weakDrop: 0.55, ghost: 0.35, drift: 0.4,
+      pitchSrc: "weight", pitchRange: 5, scale: "penta", note: 55, pan: -0.3 }),
+    V("bongo", { length: 6, steps: 24, density: 0.3, spin: -2, chance: 0.8, weakDrop: 0.6, ghost: 0.25,
+      ratchetChance: 0.12, ratchet: 3, drift: 0.3, pan: 0.25, level: 0.6 }),
+    V("hat", { density: 0.75, weakDrop: 0.6, chance: 0.9, ratchetChance: 0.15, ratchet: 3, velJitter: 0.35, accent: 0.8,
+      drift: 0.2, level: 0.4, pan: 0.15 }),
+    V("shaker", { length: 2, steps: 8, density: 0.6, spin: 1, chance: 0.85, weakDrop: 0.5, swing: 0.15, jitter: 6, level: 0.35, pan: -0.2 }),
+  ]},
   "Cascara crossfire": { bpm: 112, voices: [
     V("kick", { density: 0.25, accent: 0.4 }),
     V("clave", { pattern: "x.xx.x.xx.x.x.x.", note: 82, decay: 0.2, tone: 0.3, accent: 0.4, chance: 0.92, ghost: 0.15, level: 0.5, pan: -0.3 }),
