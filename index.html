@@ -110,6 +110,9 @@ select option{background:var(--body);color:var(--ink)}
 .icard.unused{opacity:.4}
 .ihead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .badge{width:22px;height:22px;border-radius:50%;border:1px solid var(--vc);background:transparent;color:var(--vc);font:400 10px var(--mono);cursor:pointer;flex:none;transition:box-shadow .05s}
+.sname{background:none;border:0;padding:0 2px;color:var(--dim);font:400 10px var(--mono);cursor:pointer;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sname:hover{color:var(--ink)}
+.icard.drop{outline:1px dashed var(--ink2);outline-offset:-4px}
 .usedby{flex:1;text-align:right;color:var(--faint);font:400 10px var(--mono);letter-spacing:.06em}
 
 .patch{display:grid;gap:6px;align-items:center;justify-content:start}
@@ -299,12 +302,14 @@ function permutations(arr) {
 }
 
 // ================= Instruments =================
+// Drums are modal: a few sine modes at the body's resonant ratios, each with its own decay and a short
+// pitch drop, struck by a filtered noise exciter. Strokes change damping and exciter, not just volume.
 const DECAY = {
-  kick: d => 0.15 + d * 0.9, sub: d => 0.12 + d * 1.1, conga: d => 0.08 + d * 0.55, bongo: d => 0.08 + d * 0.33,
-  snare: d => 0.06 + d * 0.35, clave: d => 0.015 + d * 0.14, cowbell: d => 0.05 + d * 0.45,
-  hat: d => 0.02 + d * 0.12, shaker: d => 0.03 + d * 0.18,
+  kick: d => 0.15 + d * 0.9, sub: d => 0.12 + d * 1.1, conga: d => 0.12 + d * 0.7, bongo: d => 0.08 + d * 0.4,
+  snare: d => 0.08 + d * 0.35, clave: d => 0.02 + d * 0.16, cowbell: d => 0.05 + d * 0.45,
+  hat: d => 0.02 + d * 0.12, shaker: d => 0.03 + d * 0.18, sample: d => 0.05 + d * 1.95,
 };
-const INST_NOTE = { kick: 33, sub: 33, conga: 57, bongo: 64, snare: 62, clave: 93, cowbell: 80, hat: 104, shaker: 100 };
+const INST_NOTE = { kick: 33, sub: 33, conga: 57, bongo: 64, snare: 62, clave: 93, cowbell: 80, hat: 104, shaker: 100, sample: 60 };
 
 function env(p, t, a, peak, d) {
   p.setValueAtTime(0.0001, t);
@@ -316,7 +321,38 @@ function noise(G, t, dur) { const s = G.ctx.createBufferSource(); s.buffer = G.n
 function filt(G, type, f, q) { const b = G.ctx.createBiquadFilter(); b.type = type; b.frequency.value = Math.min(f, 18000); b.Q.value = q; return b; }
 const amp = G => G.ctx.createGain();
 
-// every synth: (graph, time, freq, velocity, decay 0-1, tone 0-1, output node, stroke)
+// one resonant mode: a sine that drops `bend` in pitch over 40ms and rings for `dec` seconds
+function mode(G, t, f, peak, dec, bend, out) {
+  const o = osc(G, "sine", t, dec), g = amp(G);
+  o.frequency.setValueAtTime(f * (1 + bend), t);
+  o.frequency.exponentialRampToValueAtTime(f, t + 0.04);
+  env(g.gain, t, 0.0015, peak, dec);
+  o.connect(g).connect(out);
+}
+// a noise burst through a band-pass: the stick, hand or bead hitting the body
+function strike(G, t, f, q, peak, dec, out) {
+  const n = noise(G, t, dec + 0.02), b = filt(G, "bandpass", f, q), g = amp(G);
+  env(g.gain, t, 0.0008, peak, dec);
+  n.connect(b).connect(g).connect(out);
+}
+// circular membrane modes (Bessel zeros relative to the fundamental) and their relative strengths
+const MEMBRANE = [[1, 1], [1.594, 0.55], [2.136, 0.38], [2.296, 0.3], [2.653, 0.22], [2.918, 0.14]];
+// free wooden bar modes
+const BAR = [[1, 1], [2.756, 0.35], [5.404, 0.12]];
+
+function hand(G, t, f, vel, len, tone, out, stroke) {
+  let body = 1, high = 1, bend = 0.04 + 0.05 * vel, ex = 0.2 + 0.45 * tone, exF = 4, exD = 0.012;
+  if (stroke === "mute") { len *= 0.22; high = 0.35; ex *= 0.8; exF = 3; }
+  else if (stroke === "slap") { len *= 0.12; high = 0.7; body = 0.5; ex = 0.6 + 0.6 * tone; exF = 7; exD = 0.03; }
+  else if (stroke === "heel") { len *= 0.15; high = 0.1; body = 0.7; f *= 0.88; ex = 0.04; bend = 0.01; }
+  MEMBRANE.forEach(([r, a], k) => {
+    const h = k ? high : 1;
+    mode(G, t, f * r, vel * a * body * h * 0.5, len / (1 + k * 0.9), bend, out);
+  });
+  strike(G, t, f * exF, 0.9, vel * ex * 0.6, exD, out);
+}
+
+// every voice: (graph, time, freq, velocity, decay 0-1, tone 0-1, output node, stroke, instrument)
 const INST = {
   kick(G, t, f, vel, dec, tone, out) {
     const d = DECAY.kick(dec), o = osc(G, "sine", t, d), g = amp(G);
@@ -324,9 +360,8 @@ const INST = {
     o.frequency.exponentialRampToValueAtTime(f, t + 0.045);
     env(g.gain, t, 0.002, vel, d);
     o.connect(g).connect(out);
-    const n = noise(G, t, 0.02), hp = filt(G, "highpass", 2000, 0.7), ng = amp(G);
-    env(ng.gain, t, 0.001, vel * 0.3 * tone, 0.012);
-    n.connect(hp).connect(ng).connect(out);
+    mode(G, t, f * 1.6, vel * 0.12, d * 0.3, 0.3, out);
+    strike(G, t, 2500 + tone * 3000, 0.7, vel * 0.25 * tone, 0.01, out);
   },
   sub(G, t, f, vel, dec, tone, out) {
     const d = DECAY.sub(dec), o = osc(G, "sine", t, d), o2 = osc(G, "triangle", t, d), lp = filt(G, "lowpass", 180 + tone * 1600, 1.2), g = amp(G), g2 = amp(G);
@@ -338,56 +373,27 @@ const INST = {
     env(g.gain, t, 0.004, vel * 0.85, d);
     lp.connect(g).connect(out);
   },
-  conga(G, t, f, vel, dec, tone, out, stroke) {
-    let d = DECAY.conga(dec), p = f, bend = 1.07, body = 0.9, slap = vel * vel * tone * 0.9, slapD = 0.035;
-    if (stroke === "mute") { d *= 0.3; p = f * 1.03; bend = 1.03; slap *= 0.4; }
-    else if (stroke === "slap") { d = 0.05 + dec * 0.06; p = f * 1.12; body = 0.5; slap = vel * (0.6 + 0.6 * tone); slapD = 0.05; }
-    else if (stroke === "heel") { d = 0.05; p = f * 0.82; body = 0.7; slap = 0; }
-    const o1 = osc(G, "sine", t, d), g1 = amp(G);
-    o1.frequency.setValueAtTime(p * bend, t);
-    o1.frequency.exponentialRampToValueAtTime(p, t + 0.035);
-    env(g1.gain, t, 0.002, vel * body, d);
-    o1.connect(g1).connect(out);
-    const o2 = osc(G, "sine", t, d * 0.4), g2 = amp(G);
-    o2.frequency.value = p * 1.59;
-    env(g2.gain, t, 0.002, vel * 0.28 * body, d * 0.4);
-    o2.connect(g2).connect(out);
-    if (slap > 0.001) {
-      const n = noise(G, t, slapD + 0.02), bp = filt(G, "bandpass", p * 5, 1.4), ng = amp(G);
-      env(ng.gain, t, 0.001, slap, slapD);
-      n.connect(bp).connect(ng).connect(out);
-    }
-  },
-  bongo(G, t, f, vel, dec, tone, out, stroke) { INST.conga(G, t, f, vel, dec * 0.6, tone, out, stroke); },
+  conga(G, t, f, vel, dec, tone, out, stroke) { hand(G, t, f, vel, DECAY.conga(dec), tone, out, stroke); },
+  bongo(G, t, f, vel, dec, tone, out, stroke) { hand(G, t, f, vel * 0.9, DECAY.bongo(dec), Math.min(1, tone + 0.15), out, stroke); },
   snare(G, t, f, vel, dec, tone, out, stroke) {
     const d = DECAY.snare(dec), body = stroke === "heel" || stroke === "ghost" ? 0.2 : 1;
-    const o = osc(G, "triangle", t, 0.2), g = amp(G);
-    o.frequency.setValueAtTime(f * 1.6, t);
-    o.frequency.exponentialRampToValueAtTime(f, t + 0.03);
-    env(g.gain, t, 0.001, vel * 0.55 * body, 0.06 + dec * 0.1);
-    o.connect(g).connect(out);
-    const n = noise(G, t, d), hp = filt(G, "highpass", 1200, 0.7), lp = filt(G, "lowpass", 4000 + tone * 9000, 0.5), ng = amp(G);
-    env(ng.gain, t, 0.001, vel * 0.75, d);
-    n.connect(hp).connect(lp).connect(ng).connect(out);
+    [[1, 1], [1.6, 0.5], [2.2, 0.25]].forEach(([r, a], k) => mode(G, t, f * r, vel * a * body * 0.4, 0.07 + dec * 0.08 / (1 + k), 0.12, out));
+    const n = noise(G, t, d), hp = filt(G, "highpass", 1800, 0.7), bp = filt(G, "bandpass", 3500 + tone * 4000, 0.6), g = amp(G);
+    env(g.gain, t, 0.001, vel * 0.7, d);
+    n.connect(hp).connect(bp).connect(g).connect(out);
+    strike(G, t, 6000, 1, vel * 0.3 * (0.4 + tone), 0.008, out);
   },
   clave(G, t, f, vel, dec, tone, out) {
-    const d = DECAY.clave(dec), o = osc(G, "sine", t, d), g = amp(G);
-    o.frequency.value = f;
-    env(g.gain, t, 0.001, vel * 0.8, d);
-    o.connect(g).connect(out);
-    const o2 = osc(G, "sine", t, d * 0.5), g2 = amp(G);
-    o2.frequency.value = f * 2.74;
-    env(g2.gain, t, 0.001, vel * 0.2 * (0.3 + tone), d * 0.5);
-    o2.connect(g2).connect(out);
-    const n = noise(G, t, 0.01), bp = filt(G, "bandpass", f * 1.5, 2), ng = amp(G);
-    env(ng.gain, t, 0.0005, vel * tone * 0.5, 0.006);
-    n.connect(bp).connect(ng).connect(out);
+    const d = DECAY.clave(dec);
+    BAR.forEach(([r, a], k) => mode(G, t, f * r, vel * a * (k ? 0.4 + tone : 1) * 0.6, d / (1 + k * 1.2), 0.01, out));
+    strike(G, t, f * 1.5, 2, vel * tone * 0.4, 0.004, out);
   },
   cowbell(G, t, f, vel, dec, tone, out) {
     const d = DECAY.cowbell(dec), bp = filt(G, "bandpass", f * 1.6, 2 + tone * 4), g = amp(G);
     env(g.gain, t, 0.001, vel * 0.55, d);
     for (const m of [1, 1.504]) { const o = osc(G, "square", t, d); o.frequency.value = f * m; o.connect(bp); }
     bp.connect(g).connect(out);
+    strike(G, t, f * 3, 1.5, vel * 0.2, 0.006, out);
   },
   hat(G, t, f, vel, dec, tone, out, stroke) {
     const d = DECAY.hat(dec) * (stroke === "open" ? 3.2 : 1), sc = f / 3322;
@@ -396,10 +402,30 @@ const INST = {
     env(g.gain, t, 0.001, vel * 0.32, d);
     bp.connect(hp).connect(g).connect(out);
   },
+  // beads: three or four tiny bursts a few milliseconds apart
   shaker(G, t, f, vel, dec, tone, out, stroke) {
-    const d = DECAY.shaker(dec) * (stroke === "open" ? 1.6 : 1), n = noise(G, t, d + 0.02), hp = filt(G, "highpass", f, 0.8), lp = filt(G, "lowpass", 6000 + tone * 10000, 0.5), g = amp(G);
-    env(g.gain, t, 0.006 + (1 - tone) * 0.012, vel * 0.7, d);
-    n.connect(hp).connect(lp).connect(g).connect(out);
+    const d = DECAY.shaker(dec) * (stroke === "open" ? 1.6 : 1), grains = 3 + Math.floor(Math.random() * 2);
+    for (let k = 0; k < grains; k++) {
+      const tk = t + k * (0.004 + Math.random() * 0.006);
+      strike(G, tk, f * (1.2 + tone * 1.5) * (0.9 + Math.random() * 0.2), 0.8, vel * (k ? 0.35 : 0.6), d / (k ? 2.5 : 1), out);
+    }
+  },
+  // a dropped-in recording, repitched relative to C4
+  sample(G, t, f, vel, dec, tone, out, stroke, ins) {
+    const buf = ins && SAMPLE_BUFS[ins.sample?.id];
+    if (!buf) return;
+    let len = DECAY.sample(dec), rate = f / mtof(60), cut = 600 + tone * 17000, gain = vel;
+    if (stroke === "mute") { len *= 0.3; cut *= 0.5; }
+    else if (stroke === "slap") { len *= 0.2; gain *= 1.1; }
+    else if (stroke === "heel") { len *= 0.2; rate *= 0.9; gain *= 0.6; }
+    len = Math.min(len, buf.duration / rate);
+    const s = G.ctx.createBufferSource(), lp = filt(G, "lowpass", cut, 0.5), g = amp(G);
+    s.buffer = buf; s.playbackRate.value = rate;
+    g.gain.setValueAtTime(gain, t);
+    g.gain.setValueAtTime(gain, t + len * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    s.connect(lp).connect(g).connect(out);
+    s.start(t); s.stop(t + len + 0.05);
   },
 };
 const mtof = n => 440 * Math.pow(2, (n - 69) / 12);
@@ -410,7 +436,7 @@ const MAX = 8;
 const SCALES = { free: null, chromatic: [0,1,2,3,4,5,6,7,8,9,10,11], major: [0,2,4,5,7,9,11], minor: [0,2,3,5,7,8,10], penta: [0,3,5,7,10], majpenta: [0,2,4,7,9], fifths: [0,7], octave: [0] };
 const SCALE_LABEL = { free: "Free", chromatic: "Chromatic", major: "Major", minor: "Minor", penta: "Min penta", majpenta: "Maj penta", fifths: "Fifths", octave: "Octaves" };
 
-const INST_DEF = { type: "conga", note: 57, pitchSrc: "none", pitchRange: 5, scale: "penta", strokes: true, decay: 0.4, tone: 0.5, level: 0.8, pan: 0, midiCh: 1 };
+const INST_DEF = { type: "conga", note: 57, pitchSrc: "none", pitchRange: 5, scale: "penta", strokes: true, decay: 0.4, tone: 0.5, vary: 0.5, level: 0.8, pan: 0, midiCh: 1, sample: null };
 const RHY_DEF = {
   inst: 0, steps: 16, factors: [2,2,2,2], mode: "barlow", lock: "free", density: 0.4, rotation: 0, spin: 0, ov: "",
   accent: 0.7, chance: 1, weakDrop: 0, ghost: 0, ratchet: 2, ratchetChance: 0, swing: 0, jitter: 0, velJitter: 0.15,
@@ -702,11 +728,69 @@ function ensureAudio() {
   ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "interactive" });
   LIVE = buildGraph(ac);
 }
+// ================= Samples =================
+// Dropped files are kept in IndexedDB under a content hash; instruments and links refer to that id.
+const SAMPLE_BUFS = {};
+const sampleDB = new Promise(res => {
+  try {
+    const r = indexedDB.open("clarence-machine", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("samples");
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => res(null);
+  } catch { res(null); }
+});
+async function idb(mode, fn) {
+  const db = await sampleDB;
+  if (!db) return null;
+  return new Promise((res, rej) => {
+    const tx = db.transaction("samples", mode), req = fn(tx.objectStore("samples"));
+    tx.oncomplete = () => res(req.result);
+    tx.onerror = () => rej(tx.error);
+  });
+}
+let decodeCtx = null;
+const decode = bytes => (ac || (decodeCtx ||= new OfflineAudioContext(1, 1, 44100))).decodeAudioData(bytes.slice(0));
+async function sampleId(file, bytes) {
+  if (!crypto.subtle) return `${file.name}-${file.size}`;
+  const h = new Uint8Array(await crypto.subtle.digest("SHA-1", bytes));
+  return [...h.slice(0, 8)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+async function loadSampleFile(ii, file) {
+  const bytes = await file.arrayBuffer();
+  let buf;
+  try { buf = await decode(bytes); } catch { instUI[ii].sname.textContent = "can't read " + file.name; return; }
+  const id = await sampleId(file, bytes);
+  SAMPLE_BUFS[id] = buf;
+  idb("readwrite", st => st.put(bytes, id)).catch(() => {});
+  const ins = S.instruments[ii];
+  Object.assign(ins, { type: "sample", note: 60, sample: { id, name: file.name } });
+  RT.forEach(r => (r.dirty = true));
+  instDirty = true;
+  changed();
+  audition(ii);
+}
+function pickSample(ii) {
+  const input = el("input", { type: "file", accept: "audio/*" });
+  input.onchange = () => input.files[0] && loadSampleFile(ii, input.files[0]);
+  input.click();
+}
+// decode any samples the current state refers to that aren't loaded yet
+async function ensureSamples() {
+  for (const ins of S.instruments) {
+    const id = ins.sample?.id;
+    if (!id || SAMPLE_BUFS[id]) continue;
+    const bytes = await idb("readonly", st => st.get(id)).catch(() => null);
+    if (bytes) try { SAMPLE_BUFS[id] = await decode(bytes); } catch {}
+  }
+  instDirty = true;
+}
+const sampleLabel = ins => ins.sample.name.replace(/\.[^.]+$/, "");
+
 const instHits = Array(MAX).fill(null);   // last hit per instrument, for card flashes
 function audition(ii) {
   ensureAudio(); ac.resume();
   const x = S.instruments[ii], t = ac.currentTime + 0.02;
-  INST[x.type](LIVE, t, mtof(x.note), 0.9, x.decay, x.tone, LIVE.chan[ii], "open");
+  INST[x.type](LIVE, t, mtof(x.note), 0.9, x.decay, x.tone, LIVE.chan[ii], "open", x);
   instHits[ii] = { t, vel: 0.9 };
 }
 
@@ -760,7 +844,10 @@ function fireStep(G, ri, i, t, live) {
   if (live) instHits[ii] = { t: tt, vel };
   for (let k = 0; k < reps; k++) {
     const tk = tt + (k * sd) / reps, vk = vel * Math.pow(0.72, k);
-    if (G.synth) INST[ins.type](G, tk, mtof(note), vk, ins.decay, ins.tone, G.chan[ii], stroke);
+    if (G.synth) {
+      const wob = a => 1 + (Math.random() * 2 - 1) * a * ins.vary;
+      INST[ins.type](G, tk, mtof(note) * wob(0.008), vk, clamp(ins.decay * wob(0.15), 0, 1), clamp(ins.tone * wob(0.2), 0, 1), G.chan[ii], stroke, ins);
+    }
     if (ins.type === "kick") { duckAt(G, ii, tk, vk); if (live) { kicks.push({ t: tk, vel: vk }); if (kicks.length > 16) kicks.shift(); } }
     if (live) sendMidi(ins.midiCh, note, vk, tk);
   }
@@ -920,6 +1007,7 @@ function applyScene(i) {
   RT.forEach(r => (r.hits = []));
   activeScene = i;
   if (LIVE) applyMix(LIVE);
+  ensureSamples();
   recomputeAll();
   if (count() !== before) buildRack();
   edited();
@@ -973,6 +1061,7 @@ function loadState(st, record = true) {
   RT.forEach(r => (r.hits = []));
   recomputeAll();
   applyPatterns();
+  ensureSamples();
   RT.forEach((r, ri) => { r.dirty = true; if (ri < count()) resyncIdx(ri); });
   if (LIVE) applyMix(LIVE);
   buildRack();
@@ -1178,6 +1267,7 @@ const I_SPEC = {
   note: { label: "Pitch", type: "num", min: 21, max: 108, step: 1, def: ii => INST_NOTE[S.instruments[ii].type], fmt: noteName },
   decay: { label: "Decay", type: "num", min: 0, max: 1, step: 0.01, def: 0.4, fmt: PCT },
   tone: { label: "Tone", type: "num", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT },
+  vary: { label: "Vary", type: "num", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT },
   level: { label: "Level", type: "num", min: 0, max: 1, step: 0.01, def: 0.8, fmt: PCT },
   pan: { label: "Pan", type: "num", min: -1, max: 1, step: 0.02, def: 0, fmt: PAN },
   pitchSrc: { label: "Pitch from", type: "enum", def: "none", opts: [["none", "Fixed"], ["weight", "Weight"], ["velocity", "Velocity"], ["step", "Step"], ["random", "Random"]] },
@@ -1209,6 +1299,7 @@ const TIPS = {
   note: "Base pitch.",
   decay: "How long each hit rings.",
   tone: "Brightness of the attack.",
+  vary: "How much pitch, decay and tone change from hit to hit, like a real player.",
   level: "Volume.",
   pan: "Left-right position.",
   pitchSrc: "What moves the pitch away from the base: step weight, loudness, position in the cycle, or chance.",
@@ -1219,7 +1310,7 @@ const TIPS = {
 };
 for (const spec of [R_SPEC, I_SPEC]) for (const k in spec) spec[k].title = TIPS[k];
 const I_GROUPS = [
-  ["Sound", ["note", "decay", "tone", "level", "pan"]],
+  ["Sound", ["note", "decay", "tone", "vary", "level", "pan"]],
   ["Pitch", ["pitchSrc", "pitchRange", "scale", "strokes", "midiCh"]],
 ];
 
@@ -1293,9 +1384,14 @@ function buildInstrument(ii) {
   const badge = el("button", { className: "badge", textContent: ii + 1, title: "Play this instrument." });
   badge.onclick = () => audition(ii);
   const type = el("select", { className: "inst" }, typeOptions());
-  type.onchange = () => setInstParam(ii, "type", type.value);
+  type.onchange = () => { setInstParam(ii, "type", type.value); if (type.value === "sample" && !S.instruments[ii].sample) pickSample(ii); };
+  const sname = el("button", { className: "sname", title: "Load a sound file, or drop one on this card." });
+  sname.onclick = () => pickSample(ii);
+  card.addEventListener("dragover", e => { e.preventDefault(); card.classList.add("drop"); });
+  card.addEventListener("dragleave", e => { if (!card.contains(e.relatedTarget)) card.classList.remove("drop"); });
+  card.addEventListener("drop", e => { e.preventDefault(); card.classList.remove("drop"); const f = e.dataTransfer.files[0]; if (f) loadSampleFile(ii, f); });
   const usedBy = el("span", { className: "usedby" });
-  head.append(badge, type, usedBy);
+  head.append(badge, type, sname, usedBy);
   const screen = el("div", { className: "grid2" }), controls = [];
   for (const [title, keys] of I_GROUPS) {
     const rows = keys.map(k => {
@@ -1306,13 +1402,14 @@ function buildInstrument(ii) {
     screen.append(makeColumn(title, rows));
   }
   card.append(head, screen);
-  instUI[ii] = { card, type, usedBy, controls, badge };
+  instUI[ii] = { card, type, sname, usedBy, controls, badge };
   return card;
 }
 function syncInstruments() {
   S.instruments.forEach((x, ii) => {
     const u = instUI[ii];
     u.type.value = x.type;
+    u.sname.textContent = x.type !== "sample" ? "↥" : !x.sample ? "load file" : sampleLabel(x) + (SAMPLE_BUFS[x.sample.id] ? "" : " · missing");
     const by = S.rhythms.map((r, ri) => (r.inst === ii ? "R" + (ri + 1) : null)).filter(Boolean);
     u.usedBy.textContent = by.length ? "← " + by.join(" ") : "unused";
     u.card.classList.toggle("unused", !by.length);
@@ -1402,7 +1499,7 @@ function syncRhythmUI(ri) {
   const v = S.rhythms[ri], u = rhyUI[ri], c = RT[ri].c, ins = S.instruments[v.inst];
   u.dev.style.setProperty("--vc", vc(v.inst));
   [...u.plays.children].forEach((b, ii) => b.classList.toggle("on", ii === v.inst));
-  u.playsName.textContent = ins.type;
+  u.playsName.textContent = ins.type === "sample" && ins.sample ? sampleLabel(ins) : ins.type;
   u.mB.classList.toggle("on", v.mute);
   u.sB.classList.toggle("on", v.solo);
   u.dev.classList.toggle("muted", !audible(v));
@@ -1762,6 +1859,7 @@ function frame() {
   S = sanitize(st || presetState(DEFAULT_PRESET));
   recomputeAll();
   applyPatterns();
+  ensureSamples();
   buildGlobal();
   buildRack();
   fillPresets();
