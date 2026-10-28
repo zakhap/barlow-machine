@@ -240,7 +240,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
 <footer>
   <p><b>Instruments and rhythms.</b> Set how many slots you want (1–8). Each slot gets an <b>instrument</b>, which is the sound: type, pitch, decay, tone, pitch mapping and MIDI channel. It also gets a <b>rhythm</b>, which is the pattern. The patch grid sets which instrument each rhythm plays. Several rhythms can share one conga, and an instrument can sit unused. A rhythm always takes the shade of the instrument it plays.</p>
   <p><b>How it works.</b> Each rhythm is a ring of steps. By default all rhythms share one cycle, so 3, 4 and 5 steps give a true 3:4:5. Each step's <b>petal length</b> is its Barlow indispensability. Barlow split a meter into layers of prime factors (12 = 2·2·3 or 3·2·2…) and ranked every pulse by how much the meter depends on it. In <b>Barlow</b> mode, Density turns pulses on in that rank order, so sweeping it walks down the rhythm tree, and the strata chips change how it branches. In <b>Euclid</b> mode, onsets are spread evenly instead. <b>Lock</b> makes a rhythm avoid (or join) the hits of the rhythms above it, which is how hand-drum ensembles interlock.</p>
-  <p><b>Reading a petal.</b> The filled part is its firing chance, the fill brightness is its velocity, and a faint stub is its ghost chance. Tails show the ring-out time, and the dots near the hub trace the pitch. When <b>Strokes</b> is on, weight also picks the stroke: open on strong pulses, muted in the middle, slap on weak ones. Values in bright ink are ones changed from their defaults; grey ones are still at default. A rhythm's <b>Length</b> follows the global Cycle until you change it. It then reads "Custom", runs as a polymeter against the others, and gets its own playhead in the Bloom (marked ′ in the hub). Flipping a step moves Density to match. Drag a knob or value vertically (shift for fine control) and double-click it to reset.</p>
+  <p><b>Reading a petal.</b> The filled part is its firing chance, the fill brightness is its velocity, and a faint stub is its ghost chance. Tails show the ring-out time, and the dots near the hub trace the pitch. When <b>Strokes</b> is on, weight also picks the stroke: open on strong pulses, muted in the middle, slap on weak ones. <b>Grid</b> sets steps per beat, so a 7-beat cycle at 4 / beat gives 28 steps layered 7·2·2. Typing a step count instead makes the rhythm <b>Free</b>: a tuplet spread over its length. Values in bright ink are ones changed from their defaults; grey ones are still at default. A rhythm's <b>Length</b> follows the global Cycle until you change it. It then reads "Custom", runs as a polymeter against the others, and gets its own playhead in the Bloom (marked ′ in the hub). Flipping a step moves Density to match. Drag a knob or value vertically (shift for fine control) and double-click it to reset.</p>
   <p><b>Keys.</b> <kbd>Space</kbd> play · <kbd>F</kbd> fill (hold) · <kbd>D</kbd> drop (hold) · <kbd>[</kbd> <kbd>]</kbd> energy · <kbd>1</kbd>–<kbd>8</kbd> recall scene at the next cycle · <kbd>⇧1</kbd>–<kbd>⇧8</kbd> store scene · <kbd>Q</kbd>–<kbd>I</kbd> mute rhythms 1–8 · <kbd>P</kbd> perform · <kbd>⌘Z</kbd> undo</p>
 </footer>
 
@@ -504,13 +504,34 @@ function sanitize(st) {
   st.rhythms = rh.map(r => {
     r = { ...RHY_DEF, ...r };
     r.inst = clamp(Math.round(r.inst) || 0, 0, n - 1);
-    r.steps = clamp(Math.round(r.steps) || 16, 2, 32);
-    if ((r.factors || []).reduce((a, b) => a * b, 1) !== r.steps) r.factors = primeFactors(r.steps);
-    r.rotation = mod(Math.round(r.rotation), r.steps);
     r.length = clamp(+r.length || 0, 0, 16);
+    r.steps = clamp(Math.round(r.steps) || 16, 2, MAX_STEPS);
+    inferGrid(r, st.beats);
+    if (r.grid) r.steps = gridSteps(r, st.beats);
+    if ((r.factors || []).reduce((a, b) => a * b, 1) !== r.steps) r.factors = r.grid ? gridFactors(r, st.beats) : primeFactors(r.steps);
+    r.rotation = mod(Math.round(r.rotation), r.steps);
     return r;
   });
   return st;
+}
+
+// ================= Grid =================
+// A grid rhythm has `grid` steps per beat, so its steps are length × grid and its strata start with
+// the beat count (7 beats of sixteenths = 28 = 7·2·2). grid 0 = free: any step count spread over the cycle.
+const MAX_STEPS = 64;
+const GRIDS = [1, 2, 3, 4, 5, 6, 8];
+const gridLen = (r, beats) => r.length || beats;
+function gridSteps(r, beats) { return clamp(Math.round(gridLen(r, beats) * r.grid), 2, MAX_STEPS); }
+function gridFactors(r, beats) {
+  const L = gridLen(r, beats), n = gridSteps(r, beats);
+  const f = Number.isInteger(L) && L * r.grid === n ? [...primeFactors(L), ...primeFactors(r.grid)] : primeFactors(n);
+  return f.length ? f : [n];
+}
+// older states have no grid: call it a grid rhythm if its steps divide evenly into its beats
+function inferGrid(r, beats) {
+  if (r.grid !== undefined) return;
+  const q = r.steps / gridLen(r, beats);
+  r.grid = GRIDS.includes(q) ? q : 0;
 }
 
 // ================= Pattern =================
@@ -730,7 +751,10 @@ function driftRhythm(ri) {
   if (v.density > 0.95) v.density = 1.9 - v.density;
   if (rnd() < 0.3 * a) v.rotation = mod(v.rotation + (rnd() < 0.5 ? 1 : -1), v.steps);
   if (rnd() < 0.18 * a) { const P = permutations(primeFactors(v.steps)); v.factors = P[Math.floor(rnd() * P.length)]; }
-  if (S.driftSteps && rnd() < 0.1 * a) setSteps(ri, clamp(v.steps + [-2, -1, 1, 2][Math.floor(rnd() * 4)], 2, 32), false);
+  if (S.driftSteps && rnd() < 0.1 * a) {
+    if (v.grid) { v.grid = GRIDS[clamp(GRIDS.indexOf(v.grid) + (rnd() < 0.5 ? -1 : 1), 0, GRIDS.length - 1)]; applyGrid(ri, false); }
+    else setSteps(ri, clamp(v.steps + [-2, -1, 1, 2][Math.floor(rnd() * 4)], 2, MAX_STEPS), false);
+  }
 }
 // runs as a rhythm crosses into a new cycle: spin and drift happen here
 function cycleStart(ri, cyc) {
@@ -786,10 +810,18 @@ const resyncIdx = ri => { const v = S.rhythms[ri]; if (playing) RT[ri].nextIdx =
 let instDirty = true;
 function setSteps(ri, n, resync = true) {
   const v = S.rhythms[ri];
-  v.steps = n; v.factors = primeFactors(n); v.rotation = mod(v.rotation, n); v.ov = "";
+  v.steps = n; v.factors = v.grid ? gridFactors(v, S.beats) : primeFactors(n); v.rotation = mod(v.rotation, n); v.ov = "";
   RT[ri].hits = [];
   if (resync) resyncIdx(ri);
   RT[ri].dirty = true;
+}
+// re-derive a grid rhythm's steps after its length, the global cycle, or its grid changed
+function applyGrid(ri, resync = true) {
+  const v = S.rhythms[ri];
+  if (!v.grid) return;
+  const n = gridSteps(v, S.beats);
+  if (n !== v.steps) setSteps(ri, n, resync);
+  else if (v.factors.reduce((a, b) => a * b, 1) !== n) v.factors = gridFactors(v, S.beats);
 }
 function edited(ri) { recomputeAll(); if (ri !== undefined) RT[ri].dirty = true; else RT.forEach(r => (r.dirty = true)); instDirty = true; changed(); }
 // Flipping a step moves Density to the new hit count, then keeps only the flips the ranking can't explain,
@@ -825,7 +857,7 @@ function setCount(n) {
   if (n > cur) {
     const add = splitVoices(TEMPLATES.slice(cur, n));
     add.instruments.forEach((x, k) => S.instruments.push({ ...x, midiCh: cur + k + 1 }));
-    add.rhythms.forEach((r, k) => { S.rhythms.push({ ...r, inst: cur + k }); RT[cur + k].hits = []; });
+    add.rhythms.forEach((r, k) => { inferGrid(r, S.beats); S.rhythms.push({ ...r, inst: cur + k }); RT[cur + k].hits = []; });
   } else {
     S.instruments.length = n; S.rhythms.length = n;
     S.rhythms.forEach(r => { if (r.inst >= n) r.inst = n - 1; });
@@ -1044,7 +1076,8 @@ const R_KNOBS = [
   { k: "weakDrop", label: "Weak Drop", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Low-rank hits skip more often" },
 ];
 const R_PARAMS = [
-  { k: "steps", label: "Steps", type: "num", min: 2, max: 32, step: 1, def: 16 },
+  { k: "steps", label: "Steps", type: "num", min: 2, max: MAX_STEPS, step: 1, def: 16, title: "Editing steps directly makes the rhythm free (a tuplet over its length)" },
+  { k: "grid", label: "Grid", type: "enum", def: 4, opts: [[0, "Free"], ...GRIDS.map(g => [g, g + " / beat"])], title: "Steps per beat. Steps = length × grid, and the strata start with the beat count." },
   { k: "mode", label: "Mode", type: "enum", def: "barlow", opts: [["barlow", "Barlow"], ["euclid", "Euclid"]] },
   { k: "lock", label: "Lock", type: "enum", def: "free", opts: [["free", "Free"], ["avoid", "Avoid ↑"], ["join", "Join ↑"]], title: "Avoid or join the hits of the rhythms above" },
   { k: "spin", label: "Spin", type: "num", min: -4, max: 4, step: 1, def: 0, fmt: x => signed(x, "/cyc"), title: "Auto-rotate every cycle" },
@@ -1072,8 +1105,9 @@ const I_PARAMS = [
 
 function setRhythmParam(ri, k, x) {
   const v = S.rhythms[ri];
-  if (k === "steps") { if (x !== v.steps) setSteps(ri, x); }
+  if (k === "steps") { v.grid = 0; if (x !== v.steps) setSteps(ri, x); }
   else v[k] = x;
+  if (k === "grid" || k === "length") applyGrid(ri);
   if (k === "length") resyncIdx(ri);
   edited(ri);
 }
@@ -1218,7 +1252,8 @@ function buildRhythm(ri) {
     knobs.append(kn.el); controls.push(kn);
   }
   for (const p of R_PARAMS) {
-    const pm = makeParam({ ...p, get: () => S.rhythms[ri][p.k], set: x => setRhythmParam(ri, p.k, x) });
+    const fmt = p.k === "steps" ? x => { const v = S.rhythms[ri]; return v.grid ? `${x} = ${+lenOf(v).toFixed(2)}×${v.grid}` : `${x} · free`; } : p.fmt;
+    const pm = makeParam({ ...p, fmt, get: () => S.rhythms[ri][p.k], set: x => setRhythmParam(ri, p.k, x) });
     screen.append(pm.el); controls.push(pm);
   }
   const fan = el("canvas", { className: "fan", title: "Tap to flip a step · drag out for density · drag around to rotate" });
@@ -1284,7 +1319,7 @@ function buildGlobal() {
   knob(bus, { label: "Duck", min: 0, max: 1, step: 0.01, def: 0.35, size: "sm", fmt: PCT, title: "Kick instruments duck the others", get: () => S.duck, set: x => { S.duck = x; changed(); } });
   knob(bus, { label: "Master", min: 0, max: 1, step: 0.01, def: 0.8, size: "sm", fmt: PCT, get: () => S.master, set: x => { S.master = x; mix(); changed(); } });
   const scr = $("globalScreen"), prm = o => { const p = makeParam(o); scr.append(p.el); globalUI.push(p); };
-  prm({ label: "Cycle", type: "num", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => !v.length && resyncIdx(ri)); edited(); } });
+  prm({ label: "Cycle", type: "num", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); edited(); } });
   prm({ label: "Drift every", type: "num", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } });
   prm({ label: "Drift steps", type: "enum", def: false, opts: [[false, "Off"], [true, "On"]], get: () => S.driftSteps, set: x => { S.driftSteps = x; changed(); } });
 
