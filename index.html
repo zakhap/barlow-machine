@@ -204,7 +204,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
       <select id="presets"></select>
       <button class="btn" id="undo" title="Undo. ⌘Z.">↶</button>
       <button class="btn" id="redo" title="Redo. ⇧⌘Z.">↷</button>
-      <button class="btn" id="mutateAll" title="Randomize every rhythm.">Mutate</button>
+      <button class="btn" id="mutateAll" title="Randomize every rhythm. M, or ⇧Q–⇧I for one.">Mutate</button>
     </div>
     <div class="row">
       <button class="btn" id="save" title="Save as a preset in this browser.">Save</button>
@@ -247,7 +247,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
 </div>
 
 <footer>
-  <kbd>Space</kbd> play · <kbd>F</kbd> fill · <kbd>D</kbd> drop · <kbd>[</kbd><kbd>]</kbd> energy · <kbd>1</kbd>–<kbd>8</kbd> scene · <kbd>⇧1</kbd>–<kbd>⇧8</kbd> store · <kbd>Q</kbd>–<kbd>I</kbd> mute · <kbd>P</kbd> perform · <kbd>⌘Z</kbd> undo
+  <kbd>Space</kbd> play · <kbd>F</kbd> fill · <kbd>D</kbd> drop · <kbd>[</kbd><kbd>]</kbd> energy · <kbd>1</kbd>–<kbd>8</kbd> scene · <kbd>⇧1</kbd>–<kbd>⇧8</kbd> store · <kbd>Q</kbd>–<kbd>I</kbd> mute · <kbd>M</kbd> mutate · <kbd>⇧Q</kbd>–<kbd>⇧I</kbd> mutate one · <kbd>P</kbd> perform · <kbd>⌘Z</kbd> undo
 </footer>
 
 <script>
@@ -1451,7 +1451,7 @@ function buildRhythm(ri) {
   const readout = el("span", { className: "readout" });
   const mB = el("button", { className: "btn m", textContent: "M", title: "Mute. " + "QWERTYUI"[ri] + "." });
   const sB = el("button", { className: "btn s", textContent: "S", title: "Solo." });
-  const xB = el("button", { className: "btn", textContent: "⚄", title: "Randomize this rhythm." });
+  const xB = el("button", { className: "btn", textContent: "⚄", title: "Randomize this rhythm. ⇧" + "QWERTYUI"[ri] + "." });
   mB.onclick = () => setMute(ri, !S.rhythms[ri].mute);
   sB.onclick = () => { S.rhythms[ri].solo = !S.rhythms[ri].solo; edited(); };
   xB.onclick = () => mutate(ri);
@@ -1603,8 +1603,9 @@ function buildGlobal() {
       case "KeyF": setFill(true); break;
       case "KeyD": setDrop(true); break;
       case "KeyP": togglePerform(); break;
+      case "KeyM": S.rhythms.forEach((_, ri) => mutate(ri)); break;
       case "BracketLeft": case "BracketRight": S.energy = clamp(S.energy + (e.code === "BracketRight" ? 0.05 : -0.05), 0, 1); globalUI.forEach(u => u.update()); edited(); break;
-      default: { const m = ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI"].indexOf(e.code); if (m >= 0 && m < count()) setMute(m, !S.rhythms[m].mute); }
+      default: { const m = ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI"].indexOf(e.code); if (m >= 0 && m < count()) e.shiftKey ? mutate(m) : setMute(m, !S.rhythms[m].mute); }
     }
   });
   document.addEventListener("keyup", e => { if (e.code === "KeyF") setFill(false); if (e.code === "KeyD") setDrop(false); });
