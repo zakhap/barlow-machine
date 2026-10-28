@@ -47,30 +47,40 @@ select option{background:var(--body);color:var(--ink)}
 .col{display:flex;flex-direction:column;gap:8px}
 .row{display:flex;gap:6px;align-items:center}
 
-/* ---------- knobs: a flat disc with one line ---------- */
-.knob{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px;cursor:ns-resize;user-select:none;touch-action:none}
-.klab{font:var(--cap);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
-.knob svg{width:42px;height:42px;display:block;overflow:visible}
-.kt{fill:none;stroke:var(--rule2);stroke-width:1}
-.ka{fill:none;stroke:var(--ink2);stroke-width:1.2}
-.kd{fill:#262624;stroke:#2f2f2d;stroke-width:1}
-.kp{stroke:var(--ink);stroke-width:1.6;stroke-linecap:round}
-.kv{font:400 10.5px/1 var(--mono);width:58px;text-align:center;color:var(--dim)}
-.knob.lit .kv{color:var(--ink)}
-.knob:hover .kd{fill:#2b2b29}
-.knob.sm{width:54px}.knob.sm svg{width:34px;height:34px}.knob.sm .kv{width:50px}
-.knob.lg{width:72px}.knob.lg svg{width:50px;height:50px}
-
 /* ---------- value lists ---------- */
 .screen{background:transparent;border-left:1px solid var(--rule);padding:2px 0 2px 16px;display:grid;grid-template-columns:1fr 1fr;gap:0 22px;align-content:center}
 .screen.one{grid-template-columns:1fr;min-width:150px}
-.prm{display:flex;justify-content:space-between;gap:12px;font:300 11.5px/1.75 var(--sans);cursor:ns-resize;user-select:none;touch-action:none;white-space:nowrap;border-bottom:1px solid transparent}
+.prm{display:flex;justify-content:space-between;gap:12px;font:300 11.5px/1.85 var(--sans);cursor:pointer;user-select:none;touch-action:none;white-space:nowrap;border-bottom:1px solid transparent}
 .prm.enum{cursor:pointer}
 .pl{color:var(--dim)}
 .pv{font:400 11px/1.75 var(--mono);color:var(--faint)}
 .prm.lit .pv{color:var(--ink)}
 .prm:hover{border-bottom-color:var(--rule)}
 .prm:hover .pl{color:var(--ink2)}
+.prm:hover .pv{color:var(--ink2)}
+.prm.lit:hover .pv{color:#fff}
+.grid3,.grid2{display:grid;gap:0 26px}
+.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.gcol{min-width:0}
+.gcol h5{margin:0 0 4px;font:var(--cap);font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--faint)}
+.gscreen{min-width:150px;align-self:flex-start}
+.gscreen .gcol{min-width:150px}
+
+/* ---------- selector popover ---------- */
+.pop{position:absolute;z-index:50;background:#222221;border:1px solid var(--rule2);border-radius:3px;padding:12px;width:220px;box-shadow:0 16px 48px rgba(0,0,0,.55)}
+.popT{font:var(--cap);letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.popList{display:flex;flex-direction:column;max-height:260px;overflow:auto;margin:0 -6px}
+.popList .popOpt{text-align:left;border:0;border-radius:0;padding:6px;font:300 12px var(--sans)}
+.popList .popOpt:hover{background:#2c2c2a}
+.popGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px}
+.popOpt{background:transparent;border:1px solid var(--rule2);border-radius:2px;color:var(--ink2);font:400 10.5px var(--mono);padding:6px 4px;cursor:pointer;white-space:nowrap}
+.popOpt:hover{border-color:var(--dim);color:var(--ink)}
+.popOpt.on,.popList .popOpt.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.popVal{font:300 22px/1 var(--sans);color:var(--ink);margin-bottom:10px}
+.pop input[type=range]{width:100%;margin:0 0 12px;accent-color:var(--ink)}
+.popFoot{display:flex;gap:6px;margin-top:10px}
+.popFoot input{flex:1;min-width:0;background:var(--well);border:1px solid var(--rule2);border-radius:2px;color:var(--ink);font:400 11px var(--mono);padding:5px 6px}
 
 /* ---------- stage ---------- */
 .stage{display:grid;grid-template-columns:minmax(380px,1fr) minmax(720px,800px);gap:28px;padding:28px;align-items:start}
@@ -101,8 +111,7 @@ select option{background:var(--body);color:var(--ink)}
 .ihead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .badge{width:22px;height:22px;border-radius:50%;border:1px solid var(--vc);background:transparent;color:var(--vc);font:400 10px var(--mono);cursor:pointer;flex:none;transition:box-shadow .05s}
 .usedby{flex:1;text-align:right;color:var(--faint);font:400 10px var(--mono);letter-spacing:.06em}
-.iknobs{display:flex;justify-content:space-between;margin-bottom:14px}
-.icard .screen{grid-template-columns:1fr 1fr;border-left:0;padding-left:0;border-top:1px solid var(--rule);padding-top:8px}
+
 .patch{display:grid;gap:6px;align-items:center;justify-content:start}
 .pcorner{font:var(--cap);color:var(--faint)}
 .phead{background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0}
@@ -127,9 +136,7 @@ select.inst{background:transparent;border:0;appearance:none;-webkit-appearance:n
 select.inst option{text-transform:none;letter-spacing:0}
 .readout{flex:1;color:var(--faint);font:400 10px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;padding-right:6px}
 .dhead .btn{padding:0;width:22px;height:22px;border-radius:50%;letter-spacing:0;font:400 9.5px var(--mono)}
-.dbody{display:grid;grid-template-columns:auto minmax(250px,1fr) 156px;gap:22px;align-items:center}
-.knobs{display:grid;grid-template-columns:repeat(4,60px);gap:16px 8px;align-content:center}
-.knobs .knob{width:60px}
+.dbody{display:grid;grid-template-columns:minmax(0,1fr) 156px;gap:26px;align-items:center}
 .fan{width:156px;height:156px;display:block;touch-action:none;cursor:pointer;border-radius:50%;background:var(--well);box-shadow:inset 0 0 0 1px var(--rule)}
 .dfoot{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:280px}
@@ -155,8 +162,8 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
 @media (max-width:820px){
   .top{padding:14px 16px;gap:14px 18px}.stage{padding:16px}footer{padding:16px 16px 32px}
   .dbody{grid-template-columns:1fr}
-  .knobs{grid-template-columns:repeat(4,1fr);justify-items:center}
-  .screen{border-left:0;padding-left:0;border-top:1px solid var(--rule);padding-top:8px}
+  .grid3,.grid2{grid-template-columns:1fr}
+  .gcol + .gcol{margin-top:10px}
   .fan{margin:0 auto}
   .dfoot{grid-template-columns:1fr}
   .instGrid{grid-template-columns:1fr}
@@ -173,12 +180,11 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   <div class="vsep"></div>
   <div class="grp">
     <button class="btn" id="play">Play</button>
-    <div id="tempoKnob"></div>
-    <div class="screen one" id="globalScreen"></div>
   </div>
   <div class="vsep"></div>
+  <div class="gscreen" id="timeScreen"></div>
+  <div class="vsep"></div>
   <div class="grp">
-    <div id="energyKnob"></div>
     <button class="btn hold" id="fillBtn" title="Hold (F): double density in rank order, more ratchets">FILL</button>
     <button class="btn hold" id="dropBtn" title="Hold (D): strip every rhythm to its single strongest pulse">DROP</button>
   </div>
@@ -188,7 +194,8 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
     <div class="scenes" id="scenes"></div>
   </div>
   <div class="vsep"></div>
-  <div class="grp" id="busKnobs"></div>
+  <div class="gscreen" id="padScreen"></div>
+  <div class="gscreen" id="mixScreen"></div>
   <div class="vsep"></div>
   <div class="col">
     <div class="row">
@@ -240,7 +247,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
 <footer>
   <p><b>Instruments and rhythms.</b> Set how many slots you want (1–8). Each slot gets an <b>instrument</b>, which is the sound: type, pitch, decay, tone, pitch mapping and MIDI channel. It also gets a <b>rhythm</b>, which is the pattern. The patch grid sets which instrument each rhythm plays. Several rhythms can share one conga, and an instrument can sit unused. A rhythm always takes the shade of the instrument it plays.</p>
   <p><b>How it works.</b> Each rhythm is a ring of steps. By default all rhythms share one cycle, so 3, 4 and 5 steps give a true 3:4:5. Each step's <b>petal length</b> is its Barlow indispensability. Barlow split a meter into layers of prime factors (12 = 2·2·3 or 3·2·2…) and ranked every pulse by how much the meter depends on it. In <b>Barlow</b> mode, Density turns pulses on in that rank order, so sweeping it walks down the rhythm tree, and the strata chips change how it branches. In <b>Euclid</b> mode, onsets are spread evenly instead. <b>Lock</b> makes a rhythm avoid (or join) the hits of the rhythms above it, which is how hand-drum ensembles interlock.</p>
-  <p><b>Reading a petal.</b> The filled part is its firing chance, the fill brightness is its velocity, and a faint stub is its ghost chance. Tails show the ring-out time, and the dots near the hub trace the pitch. When <b>Strokes</b> is on, weight also picks the stroke: open on strong pulses, muted in the middle, slap on weak ones. <b>Grid</b> sets steps per beat, so a 7-beat cycle at 4 / beat gives 28 steps layered 7·2·2. Typing a step count instead makes the rhythm <b>Free</b>: a tuplet spread over its length. Values in bright ink are ones changed from their defaults; grey ones are still at default. A rhythm's <b>Length</b> follows the global Cycle until you change it. It then reads "Custom", runs as a polymeter against the others, and gets its own playhead in the Bloom (marked ′ in the hub). Flipping a step moves Density to match. Drag a knob or value vertically (shift for fine control) and double-click it to reset.</p>
+  <p><b>Reading a petal.</b> The filled part is its firing chance, the fill brightness is its velocity, and a faint stub is its ghost chance. Tails show the ring-out time, and the dots near the hub trace the pitch. When <b>Strokes</b> is on, weight also picks the stroke: open on strong pulses, muted in the middle, slap on weak ones. <b>Grid</b> sets steps per beat, so a 7-beat cycle at 4 / beat gives 28 steps layered 7·2·2. Typing a step count instead makes the rhythm <b>Free</b>: a tuplet spread over its length. Values in bright ink are ones changed from their defaults; grey ones are still at default. A rhythm's <b>Length</b> follows the global Cycle until you change it. It then shows its own beat count, runs as a polymeter against the others, and gets its own playhead in the Bloom (marked ′ in the hub). Flipping a step moves Density to match. Click any value to pick from a list, a row of buttons or a slider; or drag it up and down (shift for fine control), or scroll on it.</p>
   <p><b>Keys.</b> <kbd>Space</kbd> play · <kbd>F</kbd> fill (hold) · <kbd>D</kbd> drop (hold) · <kbd>[</kbd> <kbd>]</kbd> energy · <kbd>1</kbd>–<kbd>8</kbd> recall scene at the next cycle · <kbd>⇧1</kbd>–<kbd>⇧8</kbd> store scene · <kbd>Q</kbd>–<kbd>I</kbd> mute rhythms 1–8 · <kbd>P</kbd> perform · <kbd>⌘Z</kbd> undo</p>
 </footer>
 
@@ -479,44 +486,44 @@ const PRESETS = {
   // and a bongo in 3 against the 4 turning backward.
   "Son clave · two clocks": { bpm: 100, voices: [
     V("kick", { density: 0.25, accent: 0.4, tone: 0.4 }),
-    V("sub", { density: 0.19, lock: "avoid", pitchSrc: "weight", pitchRange: -5, scale: "minor", note: 31, decay: 0.25, strokes: false, level: 0.7 }),
+    V("sub", { density: 0.19, lock: "avoid", chance: 0.9, pitchSrc: "weight", pitchRange: -5, scale: "minor", note: 31, decay: 0.25, strokes: false, level: 0.7 }),
     V("clave", { pattern: "x..x..x...x.x...", accent: 0.3, level: 0.6, pan: 0.25, note: 91 }),
-    V("conga", { length: 8, steps: 16, density: 0.38, lock: "avoid", spin: 1, ghost: 0.25, pitchSrc: "weight", pitchRange: 5, note: 55, swing: 0.1, pan: -0.25 }),
-    V("bongo", { length: 3, steps: 12, density: 0.34, lock: "avoid", spin: -1, ghost: 0.3, chance: 0.85, pan: 0.3, level: 0.6 }),
+    V("conga", { length: 8, steps: 16, density: 0.38, lock: "avoid", spin: 1, chance: 0.88, ghost: 0.35, ratchetChance: 0.1, ratchet: 3, pitchSrc: "weight", pitchRange: 5, note: 55, swing: 0.1, pan: -0.25 }),
+    V("bongo", { length: 3, steps: 12, density: 0.34, lock: "avoid", spin: -1, ghost: 0.3, chance: 0.8, weakDrop: 0.3, ratchetChance: 0.12, pan: 0.3, level: 0.6 }),
   ]},
   // Rumba clave over a 6/8 bembé bell (12 over 4 beats), a 2-beat shaker turning forward fast
   // and an 8-beat conga turning backward slowly.
   "Rumba against 6/8": { bpm: 108, voices: [
     V("kick", { density: 0.25, accent: 0.4 }),
     V("clave", { pattern: "x..x...x..x.x...", accent: 0.3, level: 0.6, pan: 0.2 }),
-    V("cowbell", { steps: 12, factors: [2,2,3], mode: "euclid", density: 0.58, accent: 0.5, level: 0.4, pan: -0.2 }),
-    V("shaker", { length: 2, steps: 8, density: 0.75, weakDrop: 0.35, spin: 1, level: 0.4, pan: 0.3 }),
-    V("conga", { length: 8, steps: 16, density: 0.44, lock: "avoid", spin: -1, ghost: 0.3, pitchSrc: "weight", pitchRange: 5, note: 55, pan: -0.25 }),
+    V("cowbell", { steps: 12, factors: [2,2,3], mode: "euclid", density: 0.58, accent: 0.5, chance: 0.92, level: 0.4, pan: -0.2 }),
+    V("shaker", { length: 2, steps: 8, density: 0.75, weakDrop: 0.35, chance: 0.85, ratchetChance: 0.15, ratchet: 3, spin: 1, level: 0.4, pan: 0.3 }),
+    V("conga", { length: 8, steps: 16, density: 0.44, lock: "avoid", spin: -1, chance: 0.9, ghost: 0.35, ratchetChance: 0.08, pitchSrc: "weight", pitchRange: 5, note: 55, pan: -0.25 }),
   ]},
   // Kick, snare and sub live on an 8-beat clock (half time); 2-3 clave and hats stay at full speed.
   "Half-time dub clave": { bpm: 140, room: 0.3, pad: "fog", padKey: 9, padLevel: 0.45, voices: [
     V("kick", { length: 8, steps: 16, pattern: "x.........x.....", accent: 0.3, decay: 0.55 }),
-    V("snare", { length: 8, steps: 16, pattern: "........x.......", ghost: 0.15, tone: 0.45 }),
+    V("snare", { length: 8, steps: 16, pattern: "........x.......", ghost: 0.3, ratchetChance: 0.06, tone: 0.45 }),
     V("clave", { pattern: "..x.x...x..x..x.", accent: 0.3, level: 0.55, pan: -0.2 }),
     V("hat", { density: 0.62, weakDrop: 0.45, spin: 1, ratchet: 3, ratchetChance: 0.1, velJitter: 0.3, level: 0.4, pan: 0.2 }),
-    V("sub", { length: 8, steps: 16, density: 0.25, lock: "avoid", pitchSrc: "weight", pitchRange: 7, scale: "minor", decay: 0.35, strokes: false }),
+    V("sub", { length: 8, steps: 16, density: 0.25, lock: "avoid", chance: 0.85, pitchSrc: "weight", pitchRange: 7, scale: "minor", decay: 0.35, strokes: false }),
   ]},
   // A five-beat bar (5·2 kick on every beat), a 3+3+4+3+3+4 clave, a 4-beat conga drifting backward
   // through the five and a 2½-beat shaker cycling forward.
   "Bossa in five": { bpm: 96, beats: 5, pad: "glass", padKey: 2, padLevel: 0.35, voices: [
     V("kick", { steps: 10, density: 0.5, accent: 0.4 }),
     V("clave", { steps: 20, pattern: "x..x..x...x..x..x...", accent: 0.3, level: 0.6, pan: 0.25 }),
-    V("conga", { length: 4, steps: 16, density: 0.4, lock: "avoid", spin: -1, ghost: 0.2, pitchSrc: "weight", pitchRange: 5, pan: -0.25 }),
-    V("shaker", { length: 2.5, steps: 10, density: 0.6, spin: 1, weakDrop: 0.3, level: 0.4, pan: 0.15 }),
+    V("conga", { length: 4, steps: 16, density: 0.4, lock: "avoid", spin: -1, chance: 0.85, ghost: 0.3, ratchetChance: 0.1, pitchSrc: "weight", pitchRange: 5, pan: -0.25 }),
+    V("shaker", { length: 2.5, steps: 10, density: 0.6, spin: 1, weakDrop: 0.3, chance: 0.85, ratchetChance: 0.12, ratchet: 3, level: 0.4, pan: 0.15 }),
   ]},
   // Cascara on a low shell and 2-3 son on a high block, a 6-beat bongo turning forward two steps a lap
   // and a 2-beat conga turning backward every half bar.
   "Cascara crossfire": { bpm: 112, voices: [
     V("kick", { density: 0.25, accent: 0.4 }),
-    V("clave", { pattern: "x.xx.x.xx.x.x.x.", note: 82, decay: 0.2, tone: 0.3, accent: 0.4, level: 0.5, pan: -0.3 }),
+    V("clave", { pattern: "x.xx.x.xx.x.x.x.", note: 82, decay: 0.2, tone: 0.3, accent: 0.4, chance: 0.92, ghost: 0.15, level: 0.5, pan: -0.3 }),
     V("clave", { pattern: "..x.x...x..x..x.", note: 96, accent: 0.3, level: 0.6, pan: 0.3 }),
-    V("bongo", { length: 6, steps: 24, density: 0.3, spin: 2, lock: "avoid", ghost: 0.2, pan: 0.15, level: 0.6 }),
-    V("conga", { length: 2, steps: 8, density: 0.38, spin: -1, lock: "avoid", pitchSrc: "weight", pitchRange: 5, pan: -0.15 }),
+    V("bongo", { length: 6, steps: 24, density: 0.3, spin: 2, lock: "avoid", chance: 0.85, ghost: 0.25, ratchetChance: 0.15, pan: 0.15, level: 0.6 }),
+    V("conga", { length: 2, steps: 8, density: 0.38, spin: -1, lock: "avoid", chance: 0.9, ghost: 0.3, ratchetChance: 0.08, pitchSrc: "weight", pitchRange: 5, pan: -0.15 }),
   ]},
   "Full kit (8)": { bpm: 98, voices: TEMPLATES },
 };
@@ -967,7 +974,7 @@ function applyGrid(ri, resync = true) {
 }
 function edited(ri) { recomputeAll(); if (ri !== undefined) RT[ri].dirty = true; else RT.forEach(r => (r.dirty = true)); instDirty = true; changed(); }
 // Flipping a step moves Density to the new hit count, then keeps only the flips the ranking can't explain,
-// so the knobs, fan and tree always agree.
+// so the values, fan and tree always agree.
 function setPattern(ri, want) {
   const v = S.rhythms[ri], offset = (S.energy - 0.5) * 0.6 + (perf.fill ? 0.3 : 0);
   v.density = clamp(want.filter(Boolean).length / v.steps - offset, 0, 1);
@@ -1163,102 +1170,152 @@ const signed = (x, unit = "") => (x > 0 ? "+" : "") + x + unit;
 const val = x => (typeof x === "function" ? x() : x);
 function quant(o, v) { const max = val(o.max); v = clamp(v, o.min, max); return +(Math.round((v - o.min) / o.step) * o.step + o.min).toFixed(4); }
 
-function polar(cx, cy, r, deg) { const a = (deg * Math.PI) / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
-function arcPath(r, d0, d1) {
-  if (d1 - d0 < 0.5) d1 = d0 + 0.5;
-  const [x0, y0] = polar(24, 24, r, d0), [x1, y1] = polar(24, 24, r, d1);
-  return `M${x0} ${y0}A${r} ${r} 0 ${d1 - d0 > 180 ? 1 : 0} 1 ${x1} ${y1}`;
-}
-// Knob: drag vertically (shift = fine), wheel, double-click resets.
-function makeKnob(o) {
-  const root = el("div", { className: "knob" + (o.size ? " " + o.size : ""), title: o.title || "" },
-    `<div class="klab">${o.label}</div><svg viewBox="0 0 48 48"><path class="kt"/><path class="ka"/><circle class="kd" cx="24" cy="24" r="13"/><line class="kp"/></svg><div class="kv"></div>`);
-  const [kt, ka, kp] = root.querySelectorAll("path,line"), kv = root.querySelector(".kv");
-  kt.setAttribute("d", arcPath(18, 135, 405));
-  function update() {
-    const v = o.get(), max = val(o.max), t = max > o.min ? (v - o.min) / (max - o.min) : 0, a = 135 + t * 270, a0 = o.bipolar ? 270 : 135;
-    ka.setAttribute("d", arcPath(18, Math.min(a0, a), Math.max(a0, a)));
-    const [qx, qy] = polar(24, 24, 4, a), [px, py] = polar(24, 24, 11, a);
-    kp.setAttribute("x1", qx); kp.setAttribute("y1", qy); kp.setAttribute("x2", px); kp.setAttribute("y2", py);
-    kv.textContent = o.fmt ? o.fmt(v) : v;
-    root.classList.toggle("lit", o.def !== undefined && Math.abs(v - val(o.def)) > 1e-9);
+// ================= Value rows and selectors =================
+// A row is a label and a value. Drag the value up or down (shift = fine), scroll on it, or click it
+// for a selector: a list for options, buttons for short ranges, a slider and field for long ones.
+const pop = el("div", { className: "pop" });
+let popOwner = null;
+function closePop() { pop.remove(); popOwner = null; }
+document.addEventListener("pointerdown", e => { if (popOwner && !pop.contains(e.target) && !popOwner.contains(e.target)) closePop(); }, true);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && popOwner) closePop(); });
+window.addEventListener("resize", () => popOwner && closePop());
+
+function openPop(row, o, put) {
+  if (popOwner === row) return closePop();
+  closePop();
+  pop.innerHTML = "";
+  pop.append(el("div", { className: "popT", textContent: o.label }));
+  const cur = o.get(), show = x => (o.fmt ? o.fmt(x) : x);
+  const choice = (label, x, on, keepOpen) => {
+    const b = el("button", { className: "popOpt" + (on ? " on" : ""), textContent: label });
+    b.onclick = () => { put(x); keepOpen ? keepOpen() : closePop(); };
+    return b;
+  };
+  if (o.type === "enum") {
+    const list = el("div", { className: "popList" });
+    for (const [x, label] of o.opts) list.append(choice(label, x, x === cur));
+    pop.append(list);
+  } else {
+    const max = val(o.max), n = Math.round((max - o.min) / o.step) + 1;
+    if (n <= 17) {
+      const grid = el("div", { className: "popGrid" });
+      for (let i = 0; i < n; i++) { const x = quant(o, o.min + i * o.step); grid.append(choice(show(x), x, Math.abs(x - cur) < 1e-9)); }
+      pop.append(grid);
+    } else {
+      const big = el("div", { className: "popVal" });
+      const slider = el("input", { type: "range", min: o.min, max, step: o.step, value: cur });
+      const field = el("input", { type: "number", min: o.min, max, step: o.step, value: cur });
+      const refresh = () => { const x = o.get(); big.textContent = show(x); slider.value = x; if (document.activeElement !== field) field.value = x; };
+      slider.oninput = () => { put(quant(o, +slider.value)); refresh(); };
+      field.onchange = () => { put(quant(o, +field.value)); refresh(); };
+      field.onkeydown = e => { if (e.key === "Enter") { field.onchange(); closePop(); } };
+      pop.append(big, slider);
+      if (o.min === 0 && max === 1) {
+        const quick = el("div", { className: "popGrid" });
+        for (const x of [0, 0.25, 0.5, 0.75, 1]) quick.append(choice(PCT(x), x, false, refresh));
+        pop.append(quick);
+      }
+      const foot = el("div", { className: "popFoot" });
+      foot.append(field, choice("Default", val(o.def), false, refresh));
+      pop.append(foot);
+      refresh();
+    }
   }
-  const put = v => { o.set(quant(o, v)); update(); };
-  let drag = null;
-  root.addEventListener("pointerdown", e => { e.preventDefault(); root.setPointerCapture(e.pointerId); drag = { y: e.clientY, v: o.get() }; });
-  root.addEventListener("pointermove", e => { if (drag) put(drag.v + ((drag.y - e.clientY) / (e.shiftKey ? 800 : 160)) * (val(o.max) - o.min)); });
-  root.addEventListener("pointerup", () => (drag = null));
-  root.addEventListener("pointercancel", () => (drag = null));
-  root.addEventListener("dblclick", () => o.def !== undefined && put(val(o.def)));
-  root.addEventListener("wheel", e => { e.preventDefault(); const d = e.deltaY || e.deltaX; put(o.get() - Math.sign(d) * Math.max(o.step, (val(o.max) - o.min) / 100) * (e.altKey ? 0.2 : 1)); }, { passive: false });
-  update();
-  return { el: root, update };
+  document.body.append(pop);
+  const b = row.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = clamp(b.right - w, 8, innerWidth - w - 8) + scrollX + "px";
+  pop.style.top = (b.bottom + h + 8 > innerHeight && b.top > h + 8 ? b.top - h - 4 : b.bottom + 4) + scrollY + "px";
+  popOwner = row;
 }
-// Screen row: numbers drag vertically, enums click to cycle (shift-click / right-click goes back).
+
 function makeParam(o) {
   const row = el("div", { className: "prm " + o.type, title: o.title || "" }, `<span class="pl">${o.label}</span><span class="pv"></span>`), pv = row.querySelector(".pv");
-  if (o.wide) row.style.gridColumn = "1 / -1";
   function update() {
     const v = o.get();
     pv.textContent = o.type === "enum" ? (o.opts.find(x => x[0] === v) || [, String(v)])[1] : o.fmt ? o.fmt(v) : v;
     row.classList.toggle("lit", v !== val(o.def));
   }
   const put = v => { o.set(v); update(); };
-  if (o.type === "enum") {
-    const cycle = dir => { const i = o.opts.findIndex(x => x[0] === o.get()); put(o.opts[mod(i + dir, o.opts.length)][0]); };
-    row.addEventListener("click", e => cycle(e.shiftKey ? -1 : 1));
-    row.addEventListener("contextmenu", e => { e.preventDefault(); cycle(-1); });
-    row.addEventListener("wheel", e => { e.preventDefault(); cycle((e.deltaY || e.deltaX) > 0 ? -1 : 1); }, { passive: false });
-  } else {
-    let drag = null;
-    const px = () => ((val(o.max) - o.min) / o.step > 60 ? 2 : 7);
-    row.addEventListener("pointerdown", e => { e.preventDefault(); row.setPointerCapture(e.pointerId); drag = { y: e.clientY, v: o.get() }; });
-    row.addEventListener("pointermove", e => { if (drag) put(quant(o, drag.v + Math.round((drag.y - e.clientY) / (px() * (e.shiftKey ? 4 : 1))) * o.step)); });
-    row.addEventListener("pointerup", () => (drag = null));
-    row.addEventListener("dblclick", () => put(val(o.def)));
-    row.addEventListener("wheel", e => { e.preventDefault(); put(quant(o, o.get() - Math.sign(e.deltaY || e.deltaX) * o.step)); }, { passive: false });
-  }
+  const optIndex = () => Math.max(0, o.opts.findIndex(x => x[0] === o.get()));
+  let drag = null;
+  row.addEventListener("pointerdown", e => {
+    if (e.button) return;
+    e.preventDefault();
+    try { row.setPointerCapture(e.pointerId); } catch {}
+    drag = { y: e.clientY, v: o.type === "enum" ? optIndex() : o.get(), moved: false };
+  });
+  row.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const dy = drag.y - e.clientY;
+    if (!drag.moved && Math.abs(dy) < 4) return;
+    if (!drag.moved) { drag.moved = true; closePop(); }
+    if (o.type === "enum") put(o.opts[clamp(drag.v + Math.round(dy / 14), 0, o.opts.length - 1)][0]);
+    else {
+      const px = (val(o.max) - o.min) / o.step > 60 ? 2 : 7;
+      put(quant(o, drag.v + Math.round(dy / (px * (e.shiftKey ? 4 : 1))) * o.step));
+    }
+  });
+  row.addEventListener("pointerup", () => { if (drag && !drag.moved) openPop(row, o, put); drag = null; });
+  row.addEventListener("pointercancel", () => (drag = null));
+  row.addEventListener("wheel", e => {
+    e.preventDefault();
+    const dir = -Math.sign(e.deltaY || e.deltaX);
+    if (o.type === "enum") put(o.opts[clamp(optIndex() + dir, 0, o.opts.length - 1)][0]);
+    else put(quant(o, o.get() + dir * o.step));
+  }, { passive: false });
   update();
   return { el: row, update };
 }
+// a titled column of rows
+function makeColumn(title, rows) {
+  const col = el("div", { className: "gcol" });
+  col.append(el("h5", { textContent: title }), ...rows.map(r => r.el));
+  return col;
+}
 
+const PAN = x => (Math.abs(x) < 0.01 ? "C" : (x < 0 ? "L" : "R") + Math.round(Math.abs(x) * 100));
 // rhythm controls: pattern only
-const R_KNOBS = [
-  { k: "density", label: "Density", min: 0, max: 1, step: 0.005, def: 0.4, fmt: (x, ri) => `${RT[ri].c.hits} / ${S.rhythms[ri].steps}`, title: "Turns pulses on in indispensability order (drag a petal outward too)" },
-  { k: "rotation", label: "Rotate", min: 0, max: ri => S.rhythms[ri].steps - 1, step: 1, def: 0 },
-  { k: "accent", label: "Vel Depth", min: 0, max: 1, step: 0.01, def: 0.7, fmt: PCT, title: "How much indispensability shapes velocity" },
-  { k: "chance", label: "Chance", min: 0, max: 1, step: 0.01, def: 1, fmt: PCT },
-  { k: "ghost", label: "Ghosts", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Quiet notes on empty steps" },
-  { k: "ratchetChance", label: "Ratchet", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Chance a hit rolls into repeats (count on the screen)" },
-  { k: "swing", label: "Swing", min: 0, max: 0.7, step: 0.01, def: 0, fmt: PCT },
-  { k: "weakDrop", label: "Weak Drop", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Low-rank hits skip more often" },
-];
-const R_PARAMS = [
-  { k: "steps", label: "Steps", type: "num", min: 2, max: MAX_STEPS, step: 1, def: 16, title: "Editing steps directly makes the rhythm free (a tuplet over its length)" },
-  { k: "grid", label: "Grid", type: "enum", def: 4, opts: [[0, "Free"], ...GRIDS.map(g => [g, g + " / beat"])], title: "Steps per beat. Steps = length × grid, and the strata start with the beat count." },
-  { k: "mode", label: "Mode", type: "enum", def: "barlow", opts: [["barlow", "Barlow"], ["euclid", "Euclid"]] },
-  { k: "lock", label: "Lock", type: "enum", def: "free", opts: [["free", "Free"], ["avoid", "Avoid ↑"], ["join", "Join ↑"]], title: "Avoid or join the hits of the rhythms above" },
-  { k: "spin", label: "Spin", type: "num", min: -4, max: 4, step: 1, def: 0, fmt: x => signed(x, "/cyc"), title: "Auto-rotate every cycle" },
-  { k: "ratchet", label: "Ratchet ×", type: "num", min: 2, max: 4, step: 1, def: 2 },
-  { k: "jitter", label: "Timing", type: "num", min: 0, max: 30, step: 1, def: 0, fmt: x => "±" + x + "ms" },
-  { k: "velJitter", label: "Vel jitter", type: "num", min: 0, max: 1, step: 0.01, def: 0.15, fmt: PCT },
-  { k: "drift", label: "Drift", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT },
-  { k: "length", label: "Length", type: "num", min: 0, max: 16, step: 0.5, def: 0, wide: true, fmt: x => (x ? `Custom · ${x} beats` : `Global · ${S.beats} beats`), title: "Cycle length for this rhythm. Global follows the Cycle setting; anything else is a polymeter override." },
+const R_SPEC = {
+  steps: { label: "Steps", type: "num", min: 2, max: MAX_STEPS, step: 1, def: 16, title: "Editing steps directly makes the rhythm free (a tuplet over its length)" },
+  grid: { label: "Grid", type: "enum", def: 4, opts: [[0, "Free"], ...GRIDS.map(g => [g, g + " / beat"])], title: "Steps per beat. Steps = length × grid, and the strata start with the beat count." },
+  length: { label: "Length", type: "num", min: 0, max: 16, step: 0.5, def: 0, fmt: x => (x ? `${x} beats` : `global ${S.beats}`), title: "Cycle length for this rhythm. 0 follows the global Cycle; anything else is a polymeter override." },
+  mode: { label: "Mode", type: "enum", def: "barlow", opts: [["barlow", "Barlow"], ["euclid", "Euclid"]] },
+  density: { label: "Density", type: "num", min: 0, max: 1, step: 0.005, def: 0.4, title: "Turns pulses on in indispensability order (drag a petal outward too)" },
+  rotation: { label: "Rotate", type: "num", min: 0, step: 1, def: 0 },
+  accent: { label: "Vel depth", type: "num", min: 0, max: 1, step: 0.01, def: 0.7, fmt: PCT, title: "How much indispensability shapes velocity" },
+  chance: { label: "Chance", type: "num", min: 0, max: 1, step: 0.01, def: 1, fmt: PCT },
+  weakDrop: { label: "Weak drop", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Low-rank hits skip more often" },
+  ghost: { label: "Ghosts", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Quiet notes on empty steps" },
+  swing: { label: "Swing", type: "num", min: 0, max: 0.7, step: 0.01, def: 0, fmt: PCT },
+  jitter: { label: "Timing", type: "num", min: 0, max: 30, step: 1, def: 0, fmt: x => "±" + x + "ms" },
+  lock: { label: "Lock", type: "enum", def: "free", opts: [["free", "Free"], ["avoid", "Avoid ↑"], ["join", "Join ↑"]], title: "Avoid or join the hits of the rhythms above" },
+  spin: { label: "Spin", type: "num", min: -4, max: 4, step: 1, def: 0, fmt: x => signed(x, "/cyc"), title: "Auto-rotate every cycle" },
+  ratchetChance: { label: "Ratchet", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT, title: "Chance a hit rolls into repeats" },
+  ratchet: { label: "Ratchet ×", type: "num", min: 2, max: 4, step: 1, def: 2 },
+  velJitter: { label: "Vel jitter", type: "num", min: 0, max: 1, step: 0.01, def: 0.15, fmt: PCT },
+  drift: { label: "Drift", type: "num", min: 0, max: 1, step: 0.01, def: 0, fmt: PCT },
+};
+const R_GROUPS = [
+  ["Pattern", ["steps", "grid", "length", "mode", "density", "rotation"]],
+  ["Feel", ["accent", "chance", "weakDrop", "ghost", "swing", "jitter"]],
+  ["Motion", ["lock", "spin", "ratchetChance", "ratchet", "velJitter", "drift"]],
 ];
 // instrument controls: sound only
-const I_KNOBS = [
-  { k: "note", label: "Pitch", min: 21, max: 108, step: 1, def: ii => INST_NOTE[S.instruments[ii].type], fmt: noteName },
-  { k: "decay", label: "Decay", min: 0, max: 1, step: 0.01, def: 0.4, fmt: PCT },
-  { k: "tone", label: "Tone", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT },
-  { k: "level", label: "Level", min: 0, max: 1, step: 0.01, def: 0.8, fmt: PCT },
-  { k: "pan", label: "Pan", min: -1, max: 1, step: 0.02, def: 0, bipolar: true, fmt: x => (Math.abs(x) < 0.01 ? "C" : (x < 0 ? "L" : "R") + Math.round(Math.abs(x) * 100)) },
-];
-const I_PARAMS = [
-  { k: "pitchSrc", label: "Pitch from", type: "enum", def: "none", opts: [["none", "Fixed"], ["weight", "Weight"], ["velocity", "Velocity"], ["step", "Step"], ["random", "Random"]], title: "Which property of each incoming hit bends the pitch" },
-  { k: "pitchRange", label: "Range", type: "num", min: -24, max: 24, step: 1, def: 5, fmt: x => signed(x, " st") },
-  { k: "scale", label: "Scale", type: "enum", def: "penta", opts: Object.entries(SCALE_LABEL) },
-  { k: "strokes", label: "Strokes", type: "enum", def: true, opts: [[true, "By weight"], [false, "Off"]] },
-  { k: "midiCh", label: "MIDI ch", type: "num", min: 1, max: 16, step: 1, def: ii => ii + 1 },
+const I_SPEC = {
+  note: { label: "Pitch", type: "num", min: 21, max: 108, step: 1, def: ii => INST_NOTE[S.instruments[ii].type], fmt: noteName },
+  decay: { label: "Decay", type: "num", min: 0, max: 1, step: 0.01, def: 0.4, fmt: PCT },
+  tone: { label: "Tone", type: "num", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT },
+  level: { label: "Level", type: "num", min: 0, max: 1, step: 0.01, def: 0.8, fmt: PCT },
+  pan: { label: "Pan", type: "num", min: -1, max: 1, step: 0.02, def: 0, fmt: PAN },
+  pitchSrc: { label: "Pitch from", type: "enum", def: "none", opts: [["none", "Fixed"], ["weight", "Weight"], ["velocity", "Velocity"], ["step", "Step"], ["random", "Random"]], title: "Which property of each incoming hit bends the pitch" },
+  pitchRange: { label: "Range", type: "num", min: -24, max: 24, step: 1, def: 5, fmt: x => signed(x, " st") },
+  scale: { label: "Scale", type: "enum", def: "penta", opts: Object.entries(SCALE_LABEL) },
+  strokes: { label: "Strokes", type: "enum", def: true, opts: [[true, "By weight"], [false, "Off"]] },
+  midiCh: { label: "MIDI ch", type: "num", min: 1, max: 16, step: 1, def: ii => ii + 1 },
+};
+const I_GROUPS = [
+  ["Sound", ["note", "decay", "tone", "level", "pan"]],
+  ["Pitch", ["pitchSrc", "pitchRange", "scale", "strokes", "midiCh"]],
 ];
 
 function setRhythmParam(ri, k, x) {
@@ -1334,16 +1391,16 @@ function buildInstrument(ii) {
   type.onchange = () => setInstParam(ii, "type", type.value);
   const usedBy = el("span", { className: "usedby" });
   head.append(badge, type, usedBy);
-  const knobs = el("div", { className: "iknobs" }), screen = el("div", { className: "screen" }), controls = [];
-  for (const k of I_KNOBS) {
-    const kn = makeKnob({ ...k, size: "sm", def: typeof k.def === "function" ? () => k.def(ii) : k.def, get: () => S.instruments[ii][k.k], set: x => setInstParam(ii, k.k, x) });
-    knobs.append(kn.el); controls.push(kn);
+  const screen = el("div", { className: "grid2" }), controls = [];
+  for (const [title, keys] of I_GROUPS) {
+    const rows = keys.map(k => {
+      const p = I_SPEC[k];
+      return makeParam({ ...p, def: typeof p.def === "function" ? () => p.def(ii) : p.def, get: () => S.instruments[ii][k], set: x => setInstParam(ii, k, x) });
+    });
+    controls.push(...rows);
+    screen.append(makeColumn(title, rows));
   }
-  for (const p of I_PARAMS) {
-    const pm = makeParam({ ...p, def: typeof p.def === "function" ? () => p.def(ii) : p.def, get: () => S.instruments[ii][p.k], set: x => setInstParam(ii, p.k, x) });
-    screen.append(pm.el); controls.push(pm);
-  }
-  card.append(head, knobs, screen);
+  card.append(head, screen);
   instUI[ii] = { card, type, usedBy, controls, badge };
   return card;
 }
@@ -1404,18 +1461,20 @@ function buildRhythm(ri) {
     plays.append(b);
   }
 
-  const body = el("div", { className: "dbody" }), knobs = el("div", { className: "knobs" }), screen = el("div", { className: "screen" }), controls = [];
-  for (const k of R_KNOBS) {
-    const kn = makeKnob({ ...k, max: typeof k.max === "function" ? () => k.max(ri) : k.max, fmt: k.fmt && (x => k.fmt(x, ri)), get: () => S.rhythms[ri][k.k], set: x => setRhythmParam(ri, k.k, x) });
-    knobs.append(kn.el); controls.push(kn);
-  }
-  for (const p of R_PARAMS) {
-    const fmt = p.k === "steps" ? x => { const v = S.rhythms[ri]; return v.grid ? `${x} = ${+lenOf(v).toFixed(2)}×${v.grid}` : `${x} · free`; } : p.fmt;
-    const pm = makeParam({ ...p, fmt, get: () => S.rhythms[ri][p.k], set: x => setRhythmParam(ri, p.k, x) });
-    screen.append(pm.el); controls.push(pm);
+  const body = el("div", { className: "dbody" }), screen = el("div", { className: "grid3" }), controls = [];
+  // values that depend on the rhythm itself
+  const local = {
+    steps: { fmt: x => { const v = S.rhythms[ri]; return v.grid ? `${x} = ${+lenOf(v).toFixed(2)}×${v.grid}` : `${x} · free`; } },
+    density: { fmt: () => `${RT[ri].c.hits} / ${S.rhythms[ri].steps}` },
+    rotation: { max: () => S.rhythms[ri].steps - 1 },
+  };
+  for (const [title, keys] of R_GROUPS) {
+    const rows = keys.map(k => makeParam({ ...R_SPEC[k], ...local[k], get: () => S.rhythms[ri][k], set: x => setRhythmParam(ri, k, x) }));
+    controls.push(...rows);
+    screen.append(makeColumn(title, rows));
   }
   const fan = el("canvas", { className: "fan", title: "Tap to flip a step · drag out for density · drag around to rotate" });
-  body.append(knobs, screen, fan);
+  body.append(screen, fan);
   const foot = el("div", { className: "dfoot" }), chips = el("div", { className: "chips" }), tree = el("canvas", { className: "tree", title: "Barlow tree: leaves are steps, size is indispensability. Click to flip a step." });
   foot.append(chips, tree);
   dev.append(head, body, foot);
@@ -1468,21 +1527,30 @@ function buildRack() {
 }
 
 function buildGlobal() {
-  const knob = (host, o) => { const k = makeKnob(o); host.append(k.el); globalUI.push(k); return k; };
-  knob($("tempoKnob"), { label: "Tempo", min: 40, max: 200, step: 1, def: 96, size: "lg", fmt: x => x + " bpm", get: () => S.bpm, set: x => { rebaseClock(); S.bpm = x; padNow?.setRate(); changed(); } });
-  knob($("energyKnob"), { label: "Energy", min: 0, max: 1, step: 0.01, def: 0.5, size: "lg", bipolar: true, fmt: PCT, title: "Macro: density, ghosts, ratchets up; weak drop down ([ and ])", get: () => S.energy, set: x => { S.energy = x; edited(); } });
-  const bus = $("busKnobs"), mix = () => LIVE && applyMix(LIVE);
-  knob(bus, { label: "Drive", min: 0, max: 1, step: 0.01, def: 0.25, size: "sm", fmt: PCT, get: () => S.drive, set: x => { S.drive = x; mix(); changed(); } });
-  knob(bus, { label: "Room", min: 0, max: 1, step: 0.01, def: 0.15, size: "sm", fmt: PCT, get: () => S.room, set: x => { S.room = x; mix(); changed(); } });
-  knob(bus, { label: "Duck", min: 0, max: 1, step: 0.01, def: 0.35, size: "sm", fmt: PCT, title: "Kick instruments duck the others", get: () => S.duck, set: x => { S.duck = x; changed(); } });
-  knob(bus, { label: "Pad", min: 0, max: 1, step: 0.01, def: 0.4, size: "sm", fmt: PCT, title: "Pad level", get: () => S.padLevel, set: x => { S.padLevel = x; mix(); changed(); } });
-  knob(bus, { label: "Master", min: 0, max: 1, step: 0.01, def: 0.8, size: "sm", fmt: PCT, get: () => S.master, set: x => { S.master = x; mix(); changed(); } });
-  const scr = $("globalScreen"), prm = o => { const p = makeParam(o); scr.append(p.el); globalUI.push(p); };
-  prm({ label: "Cycle", type: "num", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); padNow?.setRate(); edited(); } });
-  prm({ label: "Drift every", type: "num", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } });
-  prm({ label: "Pad", type: "enum", def: "none", opts: Object.entries(PAD_LABEL), title: "Atmospheric backdrop, synthesized in the chosen key", get: () => S.pad, set: x => { S.pad = x; refreshPad(); changed(); } });
-  prm({ label: "Key", type: "enum", def: 9, opts: KEYS.map((k, i) => [i, k]), title: "Pad key", get: () => S.padKey, set: x => { S.padKey = x; refreshPad(); changed(); } });
-  prm({ label: "Drift steps", type: "enum", def: false, opts: [[false, "Off"], [true, "On"]], get: () => S.driftSteps, set: x => { S.driftSteps = x; changed(); } });
+  const mix = () => LIVE && applyMix(LIVE);
+  const column = (host, title, specs) => {
+    const rows = specs.map(o => makeParam({ type: "num", ...o }));
+    globalUI.push(...rows);
+    $(host).append(makeColumn(title, rows));
+  };
+  column("timeScreen", "Time", [
+    { label: "Tempo", min: 40, max: 200, step: 1, def: 96, fmt: x => x + " bpm", get: () => S.bpm, set: x => { rebaseClock(); S.bpm = x; padNow?.setRate(); changed(); } },
+    { label: "Cycle", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); padNow?.setRate(); edited(); } },
+    { label: "Energy", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT, title: "Macro: density, ghosts, ratchets up; weak drop down ([ and ])", get: () => S.energy, set: x => { S.energy = x; edited(); } },
+    { label: "Drift every", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } },
+    { label: "Drift steps", type: "enum", def: false, opts: [[false, "Off"], [true, "On"]], get: () => S.driftSteps, set: x => { S.driftSteps = x; changed(); } },
+  ]);
+  column("padScreen", "Pad", [
+    { label: "Pad", type: "enum", def: "none", opts: Object.entries(PAD_LABEL), title: "Atmospheric backdrop, synthesized in the chosen key", get: () => S.pad, set: x => { S.pad = x; refreshPad(); changed(); } },
+    { label: "Key", type: "enum", def: 9, opts: KEYS.map((k, i) => [i, k]), get: () => S.padKey, set: x => { S.padKey = x; refreshPad(); changed(); } },
+    { label: "Level", min: 0, max: 1, step: 0.01, def: 0.4, fmt: PCT, get: () => S.padLevel, set: x => { S.padLevel = x; mix(); changed(); } },
+  ]);
+  column("mixScreen", "Mix", [
+    { label: "Drive", min: 0, max: 1, step: 0.01, def: 0.25, fmt: PCT, get: () => S.drive, set: x => { S.drive = x; mix(); changed(); } },
+    { label: "Room", min: 0, max: 1, step: 0.01, def: 0.15, fmt: PCT, get: () => S.room, set: x => { S.room = x; mix(); changed(); } },
+    { label: "Duck", min: 0, max: 1, step: 0.01, def: 0.35, fmt: PCT, title: "Kick instruments duck the others", get: () => S.duck, set: x => { S.duck = x; changed(); } },
+    { label: "Master", min: 0, max: 1, step: 0.01, def: 0.8, fmt: PCT, get: () => S.master, set: x => { S.master = x; mix(); changed(); } },
+  ]);
 
   $("countDown").onclick = () => setCount(count() - 1);
   $("countUp").onclick = () => setCount(count() + 1);
@@ -1527,7 +1595,7 @@ function buildGlobal() {
   $("performBtn").onclick = togglePerform;
 
   document.addEventListener("keydown", e => {
-    if (e.target.matches("input,select,textarea")) return;
+    if (e.target.matches?.("input,select,textarea")) return;
     if ((e.metaKey || e.ctrlKey) && e.code === "KeyZ") { e.preventDefault(); undoRedo(e.shiftKey ? 1 : -1); return; }
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const digit = e.code.match(/^Digit([1-8])$/);
