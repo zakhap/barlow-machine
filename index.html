@@ -194,7 +194,6 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
     <div class="scenes" id="scenes"></div>
   </div>
   <div class="vsep"></div>
-  <div class="gscreen" id="padScreen"></div>
   <div class="gscreen" id="mixScreen"></div>
   <div class="vsep"></div>
   <div class="col">
@@ -417,7 +416,7 @@ const RHY_DEF = {
   accent: 0.7, chance: 1, weakDrop: 0, ghost: 0, ratchet: 2, ratchetChance: 0, swing: 0, jitter: 0, velJitter: 0.15,
   drift: 0, mute: false, solo: false, length: 0,   // length in beats; 0 = follow the global cycle
 };
-const GLOBAL_DEF = { bpm: 96, beats: 4, master: 0.8, energy: 0.5, drive: 0.25, room: 0.15, duck: 0.35, driftEvery: 4, driftSteps: false, pad: "none", padKey: 9, padLevel: 0.4 };
+const GLOBAL_DEF = { bpm: 96, beats: 4, master: 0.8, energy: 0.5, drive: 0.25, room: 0.15, duck: 0.35, driftEvery: 4, driftSteps: false };
 
 // Presets are written as combined voices (sound + pattern) and split on load.
 function V(type, extra = {}) { return { type, ...extra }; }
@@ -515,6 +514,7 @@ function presetState(name) {
 function sanitize(st) {
   st = { ...GLOBAL_DEF, ...st };
   if (st.voices) { Object.assign(st, splitVoices(st.voices)); delete st.voices; }   // old single-layer links
+  delete st.pad; delete st.padKey; delete st.padLevel;   // pads were removed
   if (!st.instruments?.length) Object.assign(st, presetState(DEFAULT_PRESET));
   const n = clamp(st.instruments.length, 1, MAX);
   st.instruments = st.instruments.slice(0, n).map((x, i) => {
@@ -676,8 +676,6 @@ function buildGraph(ctx) {
     g.connect(p).connect(d).connect(sum);
     G.chan.push(g); G.panner.push(p); G.duck.push(d);
   }
-  G.pad = ctx.createGain(); G.padDuck = ctx.createGain();
-  G.pad.connect(G.padDuck).connect(sum);
   applyMix(G, true);
   return G;
 }
@@ -687,7 +685,6 @@ function applyMix(G, instant) {
   set(G.post.gain, 1 / (1 + S.drive * 0.8));
   set(G.wet.gain, S.room * 0.7);
   set(G.master.gain, S.master);
-  set(G.pad.gain, S.padLevel * 0.5);
   S.instruments.forEach((x, i) => { set(G.chan[i].gain, x.level); set(G.panner[i].pan, x.pan); });
 }
 function duckAt(G, ii, t, vel) {
@@ -698,101 +695,8 @@ function duckAt(G, ii, t, vel) {
     p.setTargetAtTime(1, t + 0.005, 0.05 + S.duck * 0.12);
   };
   S.instruments.forEach((x, j) => { if (j !== ii && x.type !== "kick") dip(G.duck[j].gain); });
-  dip(G.padDuck.gain);
 }
 
-// ================= Pads =================
-// Synthesized backdrops in a chosen key. Each one swells once per cycle so it breathes with the groove.
-const PAD_LABEL = { none: "None", fog: "Fog", choir: "Choir", glass: "Glass", air: "Air", sub: "Sub drone" };
-const KEYS = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
-const PADS = {
-  // detuned saw chord (root, fifth, octave) through a low-pass that opens each cycle
-  fog(P, k) {
-    const lp = P.filter("lowpass", 420, 0.7);
-    P.lfo(lp.frequency, 260);
-    for (const n of [k + 36, k + 43, k + 48]) for (const det of [-8, 7]) P.osc("sawtooth", mtof(n), det, 0.06).connect(lp);
-    return lp;
-  },
-  // minor chord through "ah" formants with a little vibrato
-  choir(P, k) {
-    const mix = P.ctx.createGain(), vib = P.osc("sine", 5.2, 0, 1), vibAmt = P.ctx.createGain();
-    vibAmt.gain.value = 6; vib.connect(vibAmt);
-    const voices = [k + 48, k + 51, k + 55, k + 60].map(n => { const o = P.osc("sawtooth", mtof(n), 0, 0.12); vibAmt.connect(o.osc.detune); return o; });
-    for (const [f, q, g] of [[700, 7, 1], [1150, 8, 0.6], [2500, 9, 0.25]]) {
-      const bp = P.filter("bandpass", f, q), gg = P.ctx.createGain();
-      gg.gain.value = g;
-      voices.forEach(v => v.connect(bp));
-      bp.connect(gg).connect(mix);
-    }
-    const out = P.ctx.createGain(); out.gain.value = 2.6;
-    P.lfo(out.gain, 1);
-    return mix.connect(out);
-  },
-  // high sine partials with a cycle-long tremolo
-  glass(P, k) {
-    const out = P.ctx.createGain(); out.gain.value = 0.7;
-    P.lfo(out.gain, 0.3);
-    for (const [n, g] of [[k + 72, 0.08], [k + 79, 0.06], [k + 84, 0.05], [k + 87, 0.035], [k + 91, 0.02]]) P.osc("sine", mtof(n), 0, g).connect(out);
-    return out;
-  },
-  // band-passed noise sweeping each cycle, under a faint root
-  air(P, k) {
-    const out = P.ctx.createGain(), bp = P.filter("bandpass", 900, 0.6), ng = P.ctx.createGain();
-    ng.gain.value = 0.42;
-    P.lfo(bp.frequency, 600);
-    P.noise().connect(bp).connect(ng).connect(out);
-    P.osc("sine", mtof(k + 60), 0, 0.03).connect(out);
-    return out;
-  },
-  // low root and fifth, swelling slowly
-  sub(P, k) {
-    const out = P.ctx.createGain(), lp = P.filter("lowpass", 220, 0.7);
-    out.gain.value = 0.22;
-    P.lfo(out.gain, 0.07);
-    P.osc("sine", mtof(k + 24), 0, 0.5).connect(lp);
-    P.osc("triangle", mtof(k + 31), 0, 0.12).connect(lp);
-    return lp.connect(out);
-  },
-};
-// Start a pad at time t on graph G; returns { stop(t), setRate() }.
-function startPad(G, t) {
-  const build = PADS[S.pad];
-  if (!build) return null;
-  const ctx = G.ctx, srcs = [], lfos = [];
-  const P = {
-    ctx,
-    osc(type, f, det, gain) {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = type; o.frequency.value = f; o.detune.value = det; g.gain.value = gain;
-      o.connect(g); o.start(t); srcs.push(o);
-      g.osc = o;
-      return g;
-    },
-    noise() { const s = ctx.createBufferSource(); s.buffer = G.noise; s.loop = true; s.start(t); srcs.push(s); return s; },
-    filter(type, f, q) { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; },
-    // one slow swell per cycle on any parameter
-    lfo(param, depth) {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.value = 1 / (S.beats * beatDur()); g.gain.value = depth;
-      o.connect(g).connect(param); o.start(t); srcs.push(o); lfos.push(o);
-    },
-  };
-  const bus = ctx.createGain();
-  bus.gain.setValueAtTime(0.0001, t);
-  bus.gain.setTargetAtTime(1, t, 0.8);
-  build(P, S.padKey).connect(bus).connect(G.pad);
-  return {
-    stop(at) { bus.gain.cancelScheduledValues(at); bus.gain.setTargetAtTime(0.0001, at, 0.6); srcs.forEach(s => s.stop(at + 4)); },
-    setRate() { lfos.forEach(o => o.frequency.setTargetAtTime(1 / (S.beats * beatDur()), ctx.currentTime, 0.1)); },
-  };
-}
-let padNow = null;
-// the pad plays while the transport runs; changing pad or key crossfades
-function refreshPad() {
-  if (!LIVE) return;
-  if (padNow) { padNow.stop(ac.currentTime); padNow = null; }
-  if (playing) padNow = startPad(LIVE, ac.currentTime + 0.02);
-}
 function ensureAudio() {
   if (ac) return;
   ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "interactive" });
@@ -914,13 +818,11 @@ function start() {
   RT.forEach(r => (r.nextIdx = 0));
   playing = true;
   tick();
-  refreshPad();
   $("play").textContent = "Stop"; $("play").classList.add("on");
 }
 function stop() {
   if (ac) frozenBeats = posAt(ac.currentTime);
   playing = false; pendingScene = null;
-  refreshPad();
   $("play").textContent = "Play"; $("play").classList.remove("on");
 }
 function rebaseClock() { if (playing) { const now = ac.currentTime; clock.pos0 = posAt(now); clock.t0 = now; } }
@@ -1073,7 +975,6 @@ function loadState(st, record = true) {
   applyPatterns();
   RT.forEach((r, ri) => { r.dirty = true; if (ri < count()) resyncIdx(ri); });
   if (LIVE) applyMix(LIVE);
-  refreshPad();
   buildRack();
   globalUI.forEach(u => u.update());
   changed({ undo: record });
@@ -1106,7 +1007,6 @@ async function bounceWav() {
   try {
     const total = cycles * S.beats, off = new OfflineAudioContext(2, Math.ceil((total * beatDur() + 2.5) * sr), sr), G = buildGraph(off);
     S.rhythms.forEach((v, ri) => { for (let n = 0; stepBeat(v, n) < total - 1e-9; n++) fireStep(G, ri, n % v.steps, 0.02 + stepBeat(v, n) * beatDur(), false); });
-    startPad(G, 0.02)?.stop(total * beatDur() + 0.3);
     download(new Blob([encodeWav(await off.startRendering())], { type: "audio/wav" }), `clarence-machine-${S.bpm}bpm.wav`);
   } finally { btn.disabled = false; btn.textContent = "Bounce WAV"; }
 }
@@ -1507,16 +1407,11 @@ function buildGlobal() {
     $(host).append(makeColumn(title, rows));
   };
   column("timeScreen", "Time", [
-    { label: "Tempo", min: 40, max: 200, step: 1, def: 96, fmt: x => x + " bpm", get: () => S.bpm, set: x => { rebaseClock(); S.bpm = x; padNow?.setRate(); changed(); } },
-    { label: "Cycle", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); padNow?.setRate(); edited(); } },
+    { label: "Tempo", min: 40, max: 200, step: 1, def: 96, fmt: x => x + " bpm", get: () => S.bpm, set: x => { rebaseClock(); S.bpm = x; changed(); } },
+    { label: "Cycle", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); edited(); } },
     { label: "Energy", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT, title: "[ ]", get: () => S.energy, set: x => { S.energy = x; edited(); } },
     { label: "Drift every", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } },
     { label: "Drift steps", type: "enum", def: false, opts: [[false, "Off"], [true, "On"]], get: () => S.driftSteps, set: x => { S.driftSteps = x; changed(); } },
-  ]);
-  column("padScreen", "Pad", [
-    { label: "Pad", type: "enum", def: "none", opts: Object.entries(PAD_LABEL), get: () => S.pad, set: x => { S.pad = x; refreshPad(); changed(); } },
-    { label: "Key", type: "enum", def: 9, opts: KEYS.map((k, i) => [i, k]), get: () => S.padKey, set: x => { S.padKey = x; refreshPad(); changed(); } },
-    { label: "Level", min: 0, max: 1, step: 0.01, def: 0.4, fmt: PCT, get: () => S.padLevel, set: x => { S.padLevel = x; mix(); changed(); } },
   ]);
   column("mixScreen", "Mix", [
     { label: "Drive", min: 0, max: 1, step: 0.01, def: 0.25, fmt: PCT, get: () => S.drive, set: x => { S.drive = x; mix(); changed(); } },
