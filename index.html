@@ -427,6 +427,7 @@ function splitVoices(voices) {
     rhythms: voices.map((v, i) => {
       const o = { ...RHY_DEF, inst: i };
       for (const k in RHY_DEF) if (k !== "inst" && v[k] !== undefined) o[k] = v[k];
+      if (v.pattern) o.pattern = v.pattern;
       return o;
     }),
   };
@@ -473,6 +474,49 @@ const PRESETS = {
     V("conga", { steps: 7, density: 0.43, pitchSrc: "weight", pitchRange: 7, drift: 0.5, pan: -0.25 }),
     V("clave", { steps: 11, density: 0.55, pitchSrc: "step", pitchRange: 12, scale: "majpenta", drift: 0.6, pan: 0.3 }),
     V("bongo", { steps: 13, density: 0.46, lock: "avoid", drift: 0.6, ghost: 0.2, pan: 0.1 }),
+  ]},
+  // Steady four-on-the-floor, a real son clave, a conga on a half-time 8-beat clock turning forward,
+  // and a bongo in 3 against the 4 turning backward.
+  "Son clave · two clocks": { bpm: 100, voices: [
+    V("kick", { density: 0.25, accent: 0.4, tone: 0.4 }),
+    V("sub", { density: 0.19, lock: "avoid", pitchSrc: "weight", pitchRange: -5, scale: "minor", note: 31, decay: 0.25, strokes: false, level: 0.7 }),
+    V("clave", { pattern: "x..x..x...x.x...", accent: 0.3, level: 0.6, pan: 0.25, note: 91 }),
+    V("conga", { length: 8, steps: 16, density: 0.38, lock: "avoid", spin: 1, ghost: 0.25, pitchSrc: "weight", pitchRange: 5, note: 55, swing: 0.1, pan: -0.25 }),
+    V("bongo", { length: 3, steps: 12, density: 0.34, lock: "avoid", spin: -1, ghost: 0.3, chance: 0.85, pan: 0.3, level: 0.6 }),
+  ]},
+  // Rumba clave over a 6/8 bembé bell (12 over 4 beats), a 2-beat shaker turning forward fast
+  // and an 8-beat conga turning backward slowly.
+  "Rumba against 6/8": { bpm: 108, voices: [
+    V("kick", { density: 0.25, accent: 0.4 }),
+    V("clave", { pattern: "x..x...x..x.x...", accent: 0.3, level: 0.6, pan: 0.2 }),
+    V("cowbell", { steps: 12, factors: [2,2,3], mode: "euclid", density: 0.58, accent: 0.5, level: 0.4, pan: -0.2 }),
+    V("shaker", { length: 2, steps: 8, density: 0.75, weakDrop: 0.35, spin: 1, level: 0.4, pan: 0.3 }),
+    V("conga", { length: 8, steps: 16, density: 0.44, lock: "avoid", spin: -1, ghost: 0.3, pitchSrc: "weight", pitchRange: 5, note: 55, pan: -0.25 }),
+  ]},
+  // Kick, snare and sub live on an 8-beat clock (half time); 2-3 clave and hats stay at full speed.
+  "Half-time dub clave": { bpm: 140, room: 0.3, voices: [
+    V("kick", { length: 8, steps: 16, pattern: "x.........x.....", accent: 0.3, decay: 0.55 }),
+    V("snare", { length: 8, steps: 16, pattern: "........x.......", ghost: 0.15, tone: 0.45 }),
+    V("clave", { pattern: "..x.x...x..x..x.", accent: 0.3, level: 0.55, pan: -0.2 }),
+    V("hat", { density: 0.62, weakDrop: 0.45, spin: 1, ratchet: 3, ratchetChance: 0.1, velJitter: 0.3, level: 0.4, pan: 0.2 }),
+    V("sub", { length: 8, steps: 16, density: 0.25, lock: "avoid", pitchSrc: "weight", pitchRange: 7, scale: "minor", decay: 0.35, strokes: false }),
+  ]},
+  // A five-beat bar (5·2 kick on every beat), a 3+3+4+3+3+4 clave, a 4-beat conga drifting backward
+  // through the five and a 2½-beat shaker cycling forward.
+  "Bossa in five": { bpm: 96, beats: 5, voices: [
+    V("kick", { steps: 10, density: 0.5, accent: 0.4 }),
+    V("clave", { steps: 20, pattern: "x..x..x...x..x..x...", accent: 0.3, level: 0.6, pan: 0.25 }),
+    V("conga", { length: 4, steps: 16, density: 0.4, lock: "avoid", spin: -1, ghost: 0.2, pitchSrc: "weight", pitchRange: 5, pan: -0.25 }),
+    V("shaker", { length: 2.5, steps: 10, density: 0.6, spin: 1, weakDrop: 0.3, level: 0.4, pan: 0.15 }),
+  ]},
+  // Cascara on a low shell and 2-3 son on a high block, a 6-beat bongo turning forward two steps a lap
+  // and a 2-beat conga turning backward every half bar.
+  "Cascara crossfire": { bpm: 112, voices: [
+    V("kick", { density: 0.25, accent: 0.4 }),
+    V("clave", { pattern: "x.xx.x.xx.x.x.x.", note: 82, decay: 0.2, tone: 0.3, accent: 0.4, level: 0.5, pan: -0.3 }),
+    V("clave", { pattern: "..x.x...x..x..x.", note: 96, accent: 0.3, level: 0.6, pan: 0.3 }),
+    V("bongo", { length: 6, steps: 24, density: 0.3, spin: 2, lock: "avoid", ghost: 0.2, pan: 0.15, level: 0.6 }),
+    V("conga", { length: 2, steps: 8, density: 0.38, spin: -1, lock: "avoid", pitchSrc: "weight", pitchRange: 5, pan: -0.15 }),
   ]},
   "Full kit (8)": { bpm: 98, voices: TEMPLATES },
 };
@@ -826,16 +870,29 @@ function applyGrid(ri, resync = true) {
 function edited(ri) { recomputeAll(); if (ri !== undefined) RT[ri].dirty = true; else RT.forEach(r => (r.dirty = true)); instDirty = true; changed(); }
 // Flipping a step moves Density to the new hit count, then keeps only the flips the ranking can't explain,
 // so the knobs, fan and tree always agree.
-function toggleStep(ri, i) {
-  const v = S.rhythms[ri], want = RT[ri].c.active.slice();
-  want[i] = !want[i];
-  const offset = (S.energy - 0.5) * 0.6 + (perf.fill ? 0.3 : 0);
+function setPattern(ri, want) {
+  const v = S.rhythms[ri], offset = (S.energy - 0.5) * 0.6 + (perf.fill ? 0.3 : 0);
   v.density = clamp(want.filter(Boolean).length / v.steps - offset, 0, 1);
   v.ov = "";
   recomputeAll();
   const base = RT[ri].c.active;
   v.ov = want.map((on, j) => (on !== base[j] ? "1" : "0")).join("").replace(/0+$/, "");
+  recomputeAll();
+}
+function toggleStep(ri, i) {
+  const want = RT[ri].c.active.slice();
+  want[i] = !want[i];
+  setPattern(ri, want);
   edited(ri);
+}
+// turn preset patterns into density + edits, top to bottom so Lock sees the rhythms above
+function applyPatterns() {
+  S.rhythms.forEach((v, ri) => {
+    if (!v.pattern) return;
+    const want = [...v.pattern.padEnd(v.steps, ".")].slice(0, v.steps).map(c => c === "x");
+    delete v.pattern;
+    setPattern(ri, want);
+  });
 }
 function mutate(ri) {
   const v = S.rhythms[ri], rnd = Math.random, P = permutations(primeFactors(v.steps));
@@ -935,6 +992,7 @@ function loadState(st, record = true) {
   S = sanitize(structuredClone(st));
   RT.forEach(r => (r.hits = []));
   recomputeAll();
+  applyPatterns();
   RT.forEach((r, ri) => { r.dirty = true; if (ri < count()) resyncIdx(ri); });
   if (LIVE) applyMix(LIVE);
   buildRack();
@@ -1632,6 +1690,7 @@ function frame() {
   if (location.hash.length > 1) { try { st = decodeState(location.hash.slice(1)); } catch (e) { console.warn("Ignoring bad state in URL", e); } }
   S = sanitize(st || presetState(DEFAULT_PRESET));
   recomputeAll();
+  applyPatterns();
   buildGlobal();
   buildRack();
   fillPresets();
