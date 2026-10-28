@@ -179,14 +179,14 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   </div>
   <div class="vsep"></div>
   <div class="grp">
-    <button class="btn" id="play">Play</button>
+    <button class="btn" id="play" title="Start or stop. Space.">Play</button>
   </div>
   <div class="vsep"></div>
   <div class="gscreen" id="timeScreen"></div>
   <div class="vsep"></div>
   <div class="grp">
-    <button class="btn hold" id="fillBtn" title="Hold F">FILL</button>
-    <button class="btn hold" id="dropBtn" title="Hold D">DROP</button>
+    <button class="btn hold" id="fillBtn" title="Hold for more hits and ratchets. F.">FILL</button>
+    <button class="btn hold" id="dropBtn" title="Hold to cut every rhythm to its strongest step. D.">DROP</button>
   </div>
   <div class="vsep"></div>
   <div class="grp">
@@ -199,35 +199,35 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   <div class="col">
     <div class="row">
       <select id="presets"></select>
-      <button class="btn" id="undo" title="⌘Z">↶</button>
-      <button class="btn" id="redo" title="⇧⌘Z">↷</button>
-      <button class="btn" id="mutateAll">Mutate</button>
+      <button class="btn" id="undo" title="Undo. ⌘Z.">↶</button>
+      <button class="btn" id="redo" title="Redo. ⇧⌘Z.">↷</button>
+      <button class="btn" id="mutateAll" title="Randomize every rhythm.">Mutate</button>
     </div>
     <div class="row">
-      <button class="btn" id="save">Save</button>
-      <button class="btn" id="share">Copy link</button>
-      <button class="btn" id="bounce" title="4 cycles">Bounce WAV</button>
-      <button class="btn" id="midiFile" title="4 cycles">MIDI file</button>
+      <button class="btn" id="save" title="Save as a preset in this browser.">Save</button>
+      <button class="btn" id="share" title="Copy a link to this exact state.">Copy link</button>
+      <button class="btn" id="bounce" title="Render 4 cycles to a WAV file.">Bounce WAV</button>
+      <button class="btn" id="midiFile" title="Export 4 cycles as a MIDI file.">MIDI file</button>
     </div>
   </div>
   <div class="col">
     <div class="row">
-      <button class="btn" id="midiBtn">MIDI out</button>
+      <button class="btn" id="midiBtn" title="Send notes to a MIDI device.">MIDI out</button>
       <select id="midiOut" hidden></select>
-      <button class="btn on" id="synthBtn">Synth</button>
+      <button class="btn on" id="synthBtn" title="Turn the built-in sound on or off.">Synth</button>
     </div>
-    <div class="row"><button class="btn" id="performBtn" title="P">Perform</button></div>
+    <div class="row"><button class="btn" id="performBtn" title="Show only the Bloom. P.">Perform</button></div>
   </div>
 </header>
 
 <div class="stage">
-  <div class="bloomWrap"><canvas id="bloom"></canvas></div>
+  <div class="bloomWrap"><canvas id="bloom" title="Click a step to flip it. Drag out for density, around to rotate."></canvas></div>
   <div class="rack">
     <section class="panel voices">
       <div class="ptitle">
         <h2>Voices</h2>
         <div class="stepper">
-          <button class="btn" id="countDown">−</button><span id="countVal">4</span><button class="btn" id="countUp">+</button>
+          <button class="btn" id="countDown" title="Remove the last rhythm and instrument.">−</button><span id="countVal">4</span><button class="btn" id="countUp" title="Add a rhythm and an instrument.">+</button>
         </div>
         
       </div>
@@ -1149,9 +1149,9 @@ function makeColumn(title, rows) {
 const PAN = x => (Math.abs(x) < 0.01 ? "C" : (x < 0 ? "L" : "R") + Math.round(Math.abs(x) * 100));
 // rhythm controls: pattern only
 const R_SPEC = {
-  steps: { label: "Steps", type: "num", min: 2, max: MAX_STEPS, step: 1, def: 16, title: "Setting steps makes the rhythm free" },
-  grid: { label: "Grid", type: "enum", def: 4, opts: [[0, "Free"], ...GRIDS.map(g => [g, g + " / beat"])], title: "Steps per beat" },
-  length: { label: "Length", type: "num", min: 0, max: 32, step: 0.5, def: 0, fmt: x => (x ? `${x} beats` : `global ${S.beats}`), title: "0 follows Cycle" },
+  steps: { label: "Steps", type: "num", min: 2, max: MAX_STEPS, step: 1, def: 16 },
+  grid: { label: "Grid", type: "enum", def: 4, opts: [[0, "Free"], ...GRIDS.map(g => [g, g + " / beat"])] },
+  length: { label: "Length", type: "num", min: 0, max: 32, step: 0.5, def: 0, fmt: x => (x ? `${x} beats` : `global ${S.beats}`) },
   mode: { label: "Mode", type: "enum", def: "barlow", opts: [["barlow", "Barlow"], ["euclid", "Euclid"]] },
   density: { label: "Density", type: "num", min: 0, max: 1, step: 0.005, def: 0.4 },
   rotation: { label: "Rotate", type: "num", min: 0, step: 1, def: 0 },
@@ -1186,6 +1186,38 @@ const I_SPEC = {
   strokes: { label: "Strokes", type: "enum", def: true, opts: [[true, "By weight"], [false, "Off"]] },
   midiCh: { label: "MIDI ch", type: "num", min: 1, max: 16, step: 1, def: ii => ii + 1 },
 };
+// what each control does, shown on hover
+const TIPS = {
+  steps: "Steps in one cycle. Setting this directly makes the rhythm free, with its steps spread evenly over its length.",
+  grid: "Steps per beat. Steps = length × grid, and the beat count becomes the top level of the meter.",
+  length: "Beats in this rhythm's cycle. Global follows Cycle; any other value runs against the other rhythms.",
+  mode: "Barlow turns steps on strongest first. Euclid spreads the same number of hits evenly.",
+  density: "How many steps play.",
+  rotation: "Shifts the whole pattern this many steps.",
+  accent: "How much a step's metric weight sets its loudness. At 0 every hit is equally loud.",
+  chance: "Probability that each hit plays.",
+  weakDrop: "Makes weak steps skip more often than strong ones.",
+  ghost: "Chance of a quiet hit on each empty step.",
+  swing: "Delays every second step.",
+  jitter: "Random timing offset for each hit.",
+  lock: "Avoid skips steps where the rhythms above already hit. Join prefers them.",
+  spin: "Rotates the pattern this many steps at the end of every cycle.",
+  ratchetChance: "Chance that a hit repeats inside its step.",
+  ratchet: "How many repeats a ratchet plays.",
+  velJitter: "Random loudness change for each hit.",
+  drift: "Randomly nudges density, rotation and strata every few cycles. Set how often under Time.",
+  note: "Base pitch.",
+  decay: "How long each hit rings.",
+  tone: "Brightness of the attack.",
+  level: "Volume.",
+  pan: "Left-right position.",
+  pitchSrc: "What moves the pitch away from the base: step weight, loudness, position in the cycle, or chance.",
+  pitchRange: "How far the pitch can move, in semitones. Negative goes down.",
+  scale: "Scale the moved pitches snap to.",
+  strokes: "Strong steps play open, middle steps muted, weak steps slapped. Conga, bongo and hat respond.",
+  midiCh: "MIDI channel this instrument sends on.",
+};
+for (const spec of [R_SPEC, I_SPEC]) for (const k in spec) spec[k].title = TIPS[k];
 const I_GROUPS = [
   ["Sound", ["note", "decay", "tone", "level", "pan"]],
   ["Pitch", ["pitchSrc", "pitchRange", "scale", "strokes", "midiCh"]],
@@ -1258,7 +1290,7 @@ function buildInstrument(ii) {
   const card = el("section", { className: "icard" });
   card.style.setProperty("--vc", vc(ii));
   const head = el("div", { className: "ihead" });
-  const badge = el("button", { className: "badge", textContent: ii + 1, title: "Play" });
+  const badge = el("button", { className: "badge", textContent: ii + 1, title: "Play this instrument." });
   badge.onclick = () => audition(ii);
   const type = el("select", { className: "inst" }, typeOptions());
   type.onchange = () => setInstParam(ii, "type", type.value);
@@ -1298,7 +1330,7 @@ function buildPatch() {
   grid.innerHTML = "";
   grid.append(el("span", { className: "pcorner", textContent: "R→I" }));
   for (let ii = 0; ii < n; ii++) {
-    const h = el("button", { className: "phead", title: "Play" }, `<b style="color:${vc(ii)}">${ii + 1}</b><span class="ptype"></span>`);
+    const h = el("button", { className: "phead", title: "Play this instrument." }, `<b style="color:${vc(ii)}">${ii + 1}</b><span class="ptype"></span>`);
     h.onclick = () => audition(ii);
     grid.append(h);
   }
@@ -1320,15 +1352,15 @@ function buildRhythm(ri) {
   const plays = el("div", { className: "plays" });
   const playsName = el("span", { className: "playsName" });
   const readout = el("span", { className: "readout" });
-  const mB = el("button", { className: "btn m", textContent: "M", title: "QWERTYUI"[ri] });
-  const sB = el("button", { className: "btn s", textContent: "S" });
-  const xB = el("button", { className: "btn", textContent: "⚄", title: "Mutate" });
+  const mB = el("button", { className: "btn m", textContent: "M", title: "Mute. " + "QWERTYUI"[ri] + "." });
+  const sB = el("button", { className: "btn s", textContent: "S", title: "Solo." });
+  const xB = el("button", { className: "btn", textContent: "⚄", title: "Randomize this rhythm." });
   mB.onclick = () => setMute(ri, !S.rhythms[ri].mute);
   sB.onclick = () => { S.rhythms[ri].solo = !S.rhythms[ri].solo; edited(); };
   xB.onclick = () => mutate(ri);
   head.append(el("span", { className: "rlabel", textContent: "R" + (ri + 1) }), el("span", { className: "arrow", textContent: "plays" }), plays, playsName, readout, mB, sB, xB);
   for (let ii = 0; ii < count(); ii++) {
-    const b = el("button", { className: "ichip", textContent: ii + 1 });
+    const b = el("button", { className: "ichip", textContent: ii + 1, title: "Play instrument " + (ii + 1) + "." });
     b.style.setProperty("--ic", vc(ii));
     b.onclick = () => route(ri, ii);
     plays.append(b);
@@ -1346,9 +1378,9 @@ function buildRhythm(ri) {
     controls.push(...rows);
     screen.append(makeColumn(title, rows));
   }
-  const fan = el("canvas", { className: "fan" });
+  const fan = el("canvas", { className: "fan", title: "Click a step to flip it. Drag out for density, around to rotate." });
   body.append(screen, fan);
-  const foot = el("div", { className: "dfoot" }), chips = el("div", { className: "chips" }), tree = el("canvas", { className: "tree" });
+  const foot = el("div", { className: "dfoot" }), chips = el("div", { className: "chips" }), tree = el("canvas", { className: "tree", title: "The meter as a tree. Leaves are steps, sized by weight. Click one to flip it." });
   foot.append(chips, tree);
   dev.append(head, body, foot);
 
@@ -1380,12 +1412,12 @@ function syncRhythmUI(ri) {
   u.chips.innerHTML = "";
   for (const p of permutations(primeFactors(v.steps))) {
     const key = p.join("·"), label = p.length === 1 && p[0] >= 5 ? `${key} (${Array((p[0] - 1) / 2 - 1).fill(2).concat(3).join("+")})` : key;
-    const b = el("button", { className: "chip" + (key === cur ? " on" : ""), textContent: label });
+    const b = el("button", { className: "chip" + (key === cur ? " on" : ""), textContent: label, title: "How the cycle divides, top level first." });
     b.onclick = () => { v.factors = p; edited(ri); };
     u.chips.append(b);
   }
   if (v.ov) {
-    const b = el("button", { className: "chip ghost", textContent: "clear edits" });
+    const b = el("button", { className: "chip ghost", textContent: "clear edits", title: "Remove flipped steps." });
     b.onclick = () => { v.ov = ""; edited(ri); };
     u.chips.append(b);
   }
@@ -1407,24 +1439,24 @@ function buildGlobal() {
     $(host).append(makeColumn(title, rows));
   };
   column("timeScreen", "Time", [
-    { label: "Tempo", min: 40, max: 200, step: 1, def: 96, fmt: x => x + " bpm", get: () => S.bpm, set: x => { rebaseClock(); S.bpm = x; changed(); } },
-    { label: "Cycle", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); edited(); } },
-    { label: "Energy", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT, title: "[ ]", get: () => S.energy, set: x => { S.energy = x; edited(); } },
-    { label: "Drift every", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } },
-    { label: "Drift steps", type: "enum", def: false, opts: [[false, "Off"], [true, "On"]], get: () => S.driftSteps, set: x => { S.driftSteps = x; changed(); } },
+    { label: "Tempo", title: "Beats per minute.", min: 40, max: 200, step: 1, def: 96, fmt: x => x + " bpm", get: () => S.bpm, set: x => { rebaseClock(); S.bpm = x; changed(); } },
+    { label: "Cycle", title: "Beats in the global cycle. Grid rhythms rebuild their steps to fit.", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); edited(); } },
+    { label: "Energy", title: "Above 50% adds hits, ghosts and ratchets. Below 50% thins weak hits. Keys [ and ].", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT, get: () => S.energy, set: x => { S.energy = x; edited(); } },
+    { label: "Drift every", title: "Cycles between drift changes.", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } },
+    { label: "Drift steps", title: "Lets drift change step counts too.", type: "enum", def: false, opts: [[false, "Off"], [true, "On"]], get: () => S.driftSteps, set: x => { S.driftSteps = x; changed(); } },
   ]);
   column("mixScreen", "Mix", [
-    { label: "Drive", min: 0, max: 1, step: 0.01, def: 0.25, fmt: PCT, get: () => S.drive, set: x => { S.drive = x; mix(); changed(); } },
-    { label: "Room", min: 0, max: 1, step: 0.01, def: 0.15, fmt: PCT, get: () => S.room, set: x => { S.room = x; mix(); changed(); } },
-    { label: "Duck", min: 0, max: 1, step: 0.01, def: 0.35, fmt: PCT, get: () => S.duck, set: x => { S.duck = x; changed(); } },
-    { label: "Master", min: 0, max: 1, step: 0.01, def: 0.8, fmt: PCT, get: () => S.master, set: x => { S.master = x; mix(); changed(); } },
+    { label: "Drive", title: "Saturation on the whole mix.", min: 0, max: 1, step: 0.01, def: 0.25, fmt: PCT, get: () => S.drive, set: x => { S.drive = x; mix(); changed(); } },
+    { label: "Room", title: "Reverb amount.", min: 0, max: 1, step: 0.01, def: 0.15, fmt: PCT, get: () => S.room, set: x => { S.room = x; mix(); changed(); } },
+    { label: "Duck", title: "How much each kick hit lowers the other instruments.", min: 0, max: 1, step: 0.01, def: 0.35, fmt: PCT, get: () => S.duck, set: x => { S.duck = x; changed(); } },
+    { label: "Master", title: "Output volume.", min: 0, max: 1, step: 0.01, def: 0.8, fmt: PCT, get: () => S.master, set: x => { S.master = x; mix(); changed(); } },
   ]);
 
   $("countDown").onclick = () => setCount(count() - 1);
   $("countUp").onclick = () => setCount(count() + 1);
 
   for (let i = 0; i < 8; i++) {
-    const b = el("button", { className: "scene", textContent: i + 1, title: "⇧ store · ⌥ clear" });
+    const b = el("button", { className: "scene", textContent: i + 1, title: "Switch to this scene at the next cycle. Shift-click stores, Alt-click clears." });
     b.onclick = e => (e.altKey ? clearScene(i) : e.shiftKey ? saveScene(i) : recallScene(i));
     $("scenes").append(b);
   }
