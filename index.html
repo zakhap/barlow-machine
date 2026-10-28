@@ -450,6 +450,12 @@ const TEMPLATES = [
 const PRESETS = {
   // Cascara on a low shell and 2-3 son on a high block, a 6-beat bongo turning forward two steps a lap
   // and a 2-beat conga turning backward every half bar.
+  // Reich's Clapping Music figure on two tuned bongos. R1 holds it; R2 plays it four times per lap
+  // and spins one step ahead each lap, phasing through all twelve offsets.
+  "Phase (after Reich)": { bpm: 112, beats: 6, room: 0.25, voices: [
+    V("bongo", { steps: 12, pattern: "xxx.xx.x.xx.", accent: 0.35, note: 64, decay: 0.5, pan: -0.55 }),
+    V("bongo", { length: 24, steps: 48, pattern: "xxx.xx.x.xx.".repeat(4), spin: 1, accent: 0.35, note: 71, decay: 0.5, pan: 0.55 }),
+  ]},
   "Cascara crossfire": { bpm: 112, voices: [
     V("kick", { density: 0.25, accent: 0.4 }),
     V("clave", { pattern: "x.xx.x.xx.x.x.x.", note: 82, decay: 0.2, tone: 0.3, accent: 0.4, chance: 0.92, ghost: 0.15, level: 0.5, pan: -0.3 }),
@@ -520,7 +526,7 @@ function sanitize(st) {
   st.rhythms = rh.map(r => {
     r = { ...RHY_DEF, ...r };
     r.inst = clamp(Math.round(r.inst) || 0, 0, n - 1);
-    r.length = clamp(+r.length || 0, 0, 16);
+    r.length = clamp(+r.length || 0, 0, 32);
     r.steps = clamp(Math.round(r.steps) || 16, 2, MAX_STEPS);
     inferGrid(r, st.beats);
     if (r.grid) r.steps = gridSteps(r, st.beats);
@@ -593,7 +599,7 @@ function recomputeAll() {
       }
       base = eu(best);
     }
-    const active = base.map((on, i) => on !== (v.ov[i] === "1"));
+    const active = base.map((on, i) => on !== (v.ov[mod(i - v.rotation, N)] === "1"));
     RT[ri].c = { raw, w, k, active, hits: active.filter(Boolean).length };
   });
   const map = new Map();
@@ -946,7 +952,9 @@ function setPattern(ri, want) {
   v.ov = "";
   recomputeAll();
   const base = RT[ri].c.active;
-  v.ov = want.map((on, j) => (on !== base[j] ? "1" : "0")).join("").replace(/0+$/, "");
+  const ov = Array(v.steps).fill("0");
+  want.forEach((on, j) => { if (on !== base[j]) ov[mod(j - v.rotation, v.steps)] = "1"; });
+  v.ov = ov.join("").replace(/0+$/, "");
   recomputeAll();
 }
 function toggleStep(ri, i) {
@@ -1243,7 +1251,7 @@ const PAN = x => (Math.abs(x) < 0.01 ? "C" : (x < 0 ? "L" : "R") + Math.round(Ma
 const R_SPEC = {
   steps: { label: "Steps", type: "num", min: 2, max: MAX_STEPS, step: 1, def: 16, title: "Setting steps makes the rhythm free" },
   grid: { label: "Grid", type: "enum", def: 4, opts: [[0, "Free"], ...GRIDS.map(g => [g, g + " / beat"])], title: "Steps per beat" },
-  length: { label: "Length", type: "num", min: 0, max: 16, step: 0.5, def: 0, fmt: x => (x ? `${x} beats` : `global ${S.beats}`), title: "0 follows Cycle" },
+  length: { label: "Length", type: "num", min: 0, max: 32, step: 0.5, def: 0, fmt: x => (x ? `${x} beats` : `global ${S.beats}`), title: "0 follows Cycle" },
   mode: { label: "Mode", type: "enum", def: "barlow", opts: [["barlow", "Barlow"], ["euclid", "Euclid"]] },
   density: { label: "Density", type: "num", min: 0, max: 1, step: 0.005, def: 0.4 },
   rotation: { label: "Rotate", type: "num", min: 0, step: 1, def: 0 },
@@ -1650,7 +1658,7 @@ function drawPetals(g, ri, cx, cy, r0, r1, d, now, o) {
       sector(g, cx, cy, r0, r0 + (rt - r0) * on, a0 + slide, a1 + slide);
       chalk(g, d, 0.92 * on * dim, o.lw);
     }
-    if (v.ov[i] === "1") { sector(g, cx, cy, r0, rt, a0, a1); g.strokeStyle = "rgba(236,235,230,.9)"; g.lineWidth = 1.5 * d; g.stroke(); }
+    if (v.ov[mod(i - v.rotation, N)] === "1") { sector(g, cx, cy, r0, rt, a0, a1); g.strokeStyle = "rgba(236,235,230,.9)"; g.lineWidth = 1.5 * d; g.stroke(); }
     const h = r.hits[i];
     if (h) {
       const age = now - h.t, life = dec + 0.08;
