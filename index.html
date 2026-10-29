@@ -159,6 +159,26 @@ body.perform .rack, body.perform footer{display:none}
 body.perform .stage{grid-template-columns:1fr}
 body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220px));width:min(100%,calc(100dvh - 220px));margin:0 auto}
 
+/* ---------- visuals ---------- */
+body.visual .stage, body.visual footer{display:none}
+.vis{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;padding:24px 28px}
+.vis[hidden]{display:none}
+#hydra{width:100%;aspect-ratio:16/9;display:block;background:#000;border:1px solid var(--rule)}
+.vside{display:flex;flex-direction:column;gap:18px;min-width:0}
+.vside h2{margin:0 0 10px;font:var(--cap);letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+.vpresets{display:flex;flex-wrap:wrap;gap:6px}
+.meters{display:grid;gap:5px;font:400 10px var(--mono);color:var(--dim)}
+.meter{display:grid;grid-template-columns:22px minmax(0,1fr) 64px;gap:8px;align-items:center}
+.meter i{display:block;height:6px;background:var(--well);border:1px solid var(--rule);position:relative;overflow:hidden}
+.meter i b{position:absolute;inset:0;transform-origin:left;transform:scaleX(0)}
+.meter span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vcode{margin:0;padding:12px;background:var(--well);border:1px solid var(--rule);font:400 10.5px/1.6 var(--mono);color:var(--ink2);white-space:pre-wrap;overflow:auto;max-height:340px}
+.vnote{font:300 11.5px/1.6 var(--sans);color:var(--dim)}
+.vnote code{font:400 10.5px var(--mono);color:var(--ink2)}
+body.perform .vis{grid-template-columns:1fr;padding:0}
+body.perform .vside{display:none}
+body.perform #hydra{aspect-ratio:auto;height:calc(100vh - 80px);height:calc(100dvh - 80px);border:0}
+
 @media (max-width:1400px){
   .stage{grid-template-columns:minmax(0,1fr)}
   .rack{min-width:0}
@@ -173,6 +193,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   .dfoot{grid-template-columns:1fr}
   .instGrid{grid-template-columns:1fr}
   .slab{display:none}
+  .vis{grid-template-columns:minmax(0,1fr);padding:16px}
 }
 /* ---------- touch ---------- */
 /* Rows scroll the page under a finger and open their selector on tap. Inputs at 16px stop iOS zooming in. */
@@ -188,6 +209,10 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   <div class="brand">
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="none" stroke="#ecebe6" stroke-width="1"/><line x1="9" y1="9" x2="9" y2="2.5" stroke="#ecebe6" stroke-width="1.4" stroke-linecap="round"/></svg>
     <b>Clarence Machine</b>
+  </div>
+  <div class="grp">
+    <button class="btn on" id="tabMachine" title="The machine. V switches.">Machine</button>
+    <button class="btn" id="tabVisuals" title="A visualizer driven by the rhythms. V switches.">Visuals</button>
   </div>
   <div class="vsep"></div>
   <div class="grp">
@@ -254,6 +279,19 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
     </section>
   </div>
 </div>
+
+<section class="vis" id="visual" hidden>
+  <canvas id="hydra"></canvas>
+  <div class="vside">
+    <div><h2>Presets</h2><div class="vpresets" id="vpresets"></div></div>
+    <div><h2>Signals</h2><div class="meters" id="meters"></div></div>
+    <div>
+      <h2>Patch</h2>
+      <pre class="vcode" id="vcode"></pre>
+    </div>
+    <p class="vnote">Drawn with <a href="https://hydra.ojack.xyz" target="_blank" rel="noopener" style="color:inherit">Hydra</a>. Each rhythm sends <code>r[i]</code>, a flash on every hit scaled by its velocity, <code>n[i]</code>, its hit count, <code>ph[i]</code>, its place in its cycle, and <code>w[i]</code>, the weight of its last hit. <code>R(i, lo, hi)</code> turns a flash into a Hydra value. Press play.</p>
+  </div>
+</section>
 
 <footer>
   <kbd>Space</kbd> play · <kbd>F</kbd> fill · <kbd>D</kbd> drop · <kbd>[</kbd><kbd>]</kbd> energy · <kbd>1</kbd>–<kbd>8</kbd> scene · <kbd>⇧1</kbd>–<kbd>⇧8</kbd> store · <kbd>Q</kbd>–<kbd>I</kbd> mute · <kbd>M</kbd> mutate · <kbd>⇧Q</kbd>–<kbd>⇧I</kbd> mutate one · <kbd>P</kbd> perform · <kbd>⌘Z</kbd> undo
@@ -1626,6 +1664,8 @@ function buildGlobal() {
   $("synthBtn").onclick = e => { synthOn = !synthOn; e.target.classList.toggle("on", synthOn); if (LIVE) LIVE.synth = synthOn; };
   const togglePerform = () => $("performBtn").classList.toggle("on", document.body.classList.toggle("perform"));
   $("performBtn").onclick = togglePerform;
+  $("tabMachine").onclick = () => showVisuals(false);
+  $("tabVisuals").onclick = () => showVisuals(true);
 
   document.addEventListener("keydown", e => {
     if (e.target.matches?.("input,select,textarea")) return;
@@ -1639,6 +1679,7 @@ function buildGlobal() {
       case "KeyF": setFill(true); break;
       case "KeyD": setDrop(true); break;
       case "KeyP": togglePerform(); break;
+      case "KeyV": showVisuals(!document.body.classList.contains("visual")); break;
       case "KeyM": S.rhythms.forEach((_, ri) => mutate(ri)); break;
       case "BracketLeft": case "BracketRight": S.energy = clamp(S.energy + (e.code === "BracketRight" ? 0.05 : -0.05), 0, 1); globalUI.forEach(u => u.update()); edited(); break;
       default: { const m = ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI"].indexOf(e.code); if (m >= 0 && m < count()) e.shiftKey ? mutate(m) : setMute(m, !S.rhythms[m].mute); }
@@ -1867,7 +1908,7 @@ function drawBloom(now) {
 
 function frame() {
   const lat = ac ? ac.outputLatency || ac.baseLatency || 0 : 0, now = ac ? ac.currentTime - lat : 0;
-  const showRack = !document.body.classList.contains("perform");
+  const vis = document.body.classList.contains("visual"), showRack = !vis && !document.body.classList.contains("perform");
   if (instDirty) { instDirty = false; syncInstruments(); }
   // instrument badges flash when their instrument sounds
   instUI.forEach((u, ii) => {
@@ -1881,8 +1922,164 @@ function frame() {
     animate(ri);
     if (showRack) { drawFan(ri, now); drawTree(ri, now); }
   });
-  drawBloom(now);
+  if (vis) drawVisuals(now); else drawBloom(now);
   requestAnimationFrame(frame);
+}
+
+// ================= Visuals =================
+// Hydra (hydra.ojack.xyz) draws one preset. Every rhythm drives it through the same signals:
+//   r[i]   a flash on each hit of rhythm i, its velocity decaying to 0
+//   n[i]   how many times rhythm i has hit
+//   ph[i]  where rhythm i is in its own cycle, 0–1
+//   w[i]   the metric weight of rhythm i's last hit
+// R(i, lo, hi) is r[i] as a Hydra parameter: lo at rest, hi on a full hit.
+// aspect, passed to .scale(1, aspect, 1), keeps circles round.
+// Rhythms that don't exist or are muted stay at 0, so every preset works with 1 to 8 rhythms.
+const HYDRA_URL = "https://unpkg.com/hydra-synth@1.3.29/dist/hydra-synth.js", VIS_KEY = "clarence.visual";
+const HY = { r: Array(MAX).fill(0), n: Array(MAX).fill(0), ph: Array(MAX).fill(0), w: Array(MAX).fill(0), last: Array(MAX).fill(-1), hydra: null, loading: null, preset: 0, t: 0, meters: [] };
+const hitParam = (i, lo = 0, hi = 1) => () => lo + (hi - lo) * HY.r[i];
+const aspect = () => { const c = $("hydra"); return c.height / c.width || 1; };   // squares up shapes on a wide canvas
+
+const VIS_PRESETS = {
+  Rings({ shape, solid, R, aspect }) {
+    // the Bloom as light: one ring per rhythm, the first outside, each lit by its hits
+    let img = solid(0, 0, 0);
+    for (let i = 0; i < 8; i++) {
+      const out = 0.86 - i * 0.09;
+      const ring = shape(90, out, 0.004).diff(shape(90, out - 0.05, 0.004));
+      img = img.add(ring.color(R(i, 0.06, 1), R(i, 0.06, 1), R(i, 0.06, 0.95)));
+    }
+    return img.scale(1, aspect, 1);
+  },
+  Strata({ osc, noise, R, ph }) {
+    // r[0] sets the line count, r[1] shifts them, ph[2] turns them, r[3] bends them, r[4] sharpens them
+    return osc(R(0, 12, 60), 0.02, 0).saturate(0)
+      .rotate(() => ph[2] * TAU)
+      .modulate(noise(3, 0.1), R(3, 0, 0.35))
+      .scrollX(R(1, 0, 0.08))
+      .contrast(R(4, 1.2, 2.4));
+  },
+  Feedback({ src, shape, o0, R, ph, aspect }) {
+    // r[1] and r[2] drop shapes into a trail that r[0] pushes outward and r[3] twists
+    const hits = shape(4, R(1, 0, 0.35), 0.01).rotate(() => ph[2] * TAU)
+      .add(shape(3, R(2, 0, 0.25), 0.01).rotate(() => -ph[3] * TAU))
+      .scale(1, aspect, 1);
+    return src(o0).scale(R(0, 1.01, 1.12)).rotate(R(3, 0, 0.06)).color(0.9, 0.9, 0.9).brightness(-0.02).add(hits);
+  },
+  Kaleid({ voronoi, osc, R, n }) {
+    // n[1], the second rhythm's hit count, sets the mirrors, so the symmetry steps along with it
+    return voronoi(R(0, 4, 14), 0.25, 0.4)
+      .kaleid(() => 3 + (n[1] % 6))
+      .modulateScale(osc(6, 0.1), R(2, 0, 0.6))
+      .rotate(R(3, 0, 0.4))
+      .thresh(R(4, 0.6, 0.35), 0.05)
+      .saturate(0);
+  },
+  Tiles({ shape, osc, R, n, ph }) {
+    // n[1] and n[2] count out the grid, ph[3] scrolls it, r[0] swells the tiles
+    return shape(4, R(0, 0.35, 0.95), 0.02)
+      .repeat(() => 2 + (n[1] % 5), () => 2 + (n[2] % 4))
+      .scrollX(() => ph[3])
+      .modulate(osc(12, 0.05), R(4, 0, 0.25))
+      .mult(osc(2, 0.02).saturate(0), R(5, 0, 0.7));
+  },
+  Grain({ noise, R, n }) {
+    // r[0] coarsens the grain, n[1] steps the pixel size, r[2] opens the threshold, r[3] sparkles
+    return noise(R(0, 3, 14), 0.08)
+      .pixelate(() => 8 + (n[1] % 8) * 6, () => 8 + (n[1] % 8) * 4)
+      .thresh(R(2, 0.7, 0.2), 0.04)
+      .add(noise(40).thresh(0.6).color(1, 1, 1), R(3, 0, 0.6))
+      .saturate(0);
+  },
+  Hue({ osc, shape, R, ph, aspect }) {
+    // the one with color: r[0] opens the hexagon, ph[1] rolls the hue, r[2] turns it
+    return osc(18, 0.05, 1.4)
+      .kaleid(6)
+      .mult(shape(6, R(0, 0.25, 0.9), 0.3).scale(1, aspect, 1))
+      .hue(() => ph[1])
+      .rotate(R(2, 0, 0.5))
+      .modulate(osc(4, 0.1), R(3, 0, 0.2));
+  },
+};
+const VIS_NAMES = Object.keys(VIS_PRESETS);
+
+function loadHydra() {
+  HY.loading ||= new Promise((ok, fail) => {
+    const s = document.createElement("script");
+    s.src = HYDRA_URL; s.onload = ok; s.onerror = fail;
+    document.head.appendChild(s);
+  }).then(() => {
+    // makeGlobal stays off: Hydra's osc and noise would collide with the synth's
+    HY.hydra = new Hydra({ canvas: $("hydra"), detectAudio: false, makeGlobal: false, autoLoop: false });
+    sizeHydra();
+    usePreset(HY.preset);
+  }).catch(() => { $("vcode").textContent = "Hydra didn't load. Check the connection and reload."; });
+  return HY.loading;
+}
+function sizeHydra() {
+  if (!HY.hydra) return;
+  const c = $("hydra"), d = Math.min(devicePixelRatio || 1, 2);
+  HY.hydra.setResolution(Math.round(c.clientWidth * d), Math.round(c.clientHeight * d));
+}
+function usePreset(i) {
+  HY.preset = i; store.set(VIS_KEY, VIS_NAMES[i]);
+  const fn = VIS_PRESETS[VIS_NAMES[i]];
+  [...$("vpresets").children].forEach((b, k) => b.classList.toggle("on", k === i));
+  $("vcode").textContent = fn.toString().replace(/^\w+/, "function");
+  if (!HY.hydra) return;
+  const h = HY.hydra.synth;
+  h.hush();
+  try { fn({ ...h, R: hitParam, r: HY.r, n: HY.n, ph: HY.ph, w: HY.w, aspect }).out(h.o0); h.render(h.o0); }
+  catch (e) { console.warn("Visual preset failed", e); }
+}
+function buildVisuals() {
+  $("vpresets").innerHTML = VIS_NAMES.map(name => `<button class="btn">${name}</button>`).join("");
+  [...$("vpresets").children].forEach((b, i) => (b.onclick = () => usePreset(i)));
+  $("meters").innerHTML = [...Array(MAX).keys()].map(i => `<div class="meter"><span>r[${i}]</span><i><b></b></i><span></span></div>`).join("");
+  HY.meters = [...$("meters").children].map(m => ({ bar: m.querySelector("b"), label: m.lastChild }));
+  HY.preset = Math.max(0, VIS_NAMES.indexOf(store.get(VIS_KEY, VIS_NAMES[0])));
+  usePreset(HY.preset);
+  window.addEventListener("resize", sizeHydra);
+}
+function showVisuals(on) {
+  document.body.classList.toggle("visual", on);
+  $("visual").hidden = !on;
+  $("tabVisuals").classList.toggle("on", on); $("tabMachine").classList.toggle("on", !on);
+  if (on) loadHydra().then(sizeHydra);
+  else RT.forEach(r => (r.dirty = true));
+}
+// read each rhythm's scheduled hits at the time being heard
+function readSignals(now) {
+  for (let ri = 0; ri < MAX; ri++) {
+    const v = S.rhythms[ri];
+    let env = 0;
+    if (v && playing && audible(v)) {
+      const r = RT[ri], sd = stepDur(v);
+      r.hits.forEach((h, i) => {
+        if (!h) return;
+        for (let k = 0; k < h.reps; k++) {
+          const t = h.t + (k * sd) / h.reps;
+          if (t > now) break;
+          env = Math.max(env, h.vel * Math.pow(0.72, k) * Math.exp(-(now - t) / 0.16));
+          if (t > HY.last[ri]) { HY.last[ri] = t; HY.n[ri]++; HY.w[ri] = r.c.w[i] ?? 0; }
+        }
+      });
+      HY.ph[ri] = mod(posAt(now) / lenOf(v), 1);
+    }
+    HY.r[ri] = env;
+  }
+}
+function drawVisuals(now) {
+  readSignals(now);
+  HY.meters.forEach((m, i) => {
+    const v = S.rhythms[i];
+    m.bar.style.transform = `scaleX(${HY.r[i]})`;
+    m.bar.style.background = v ? COLORS[v.inst] : "transparent";
+    m.label.textContent = v ? S.instruments[v.inst].type : "";
+  });
+  const t = performance.now(), dt = HY.t ? t - HY.t : 16;
+  HY.t = t;
+  if (HY.hydra) HY.hydra.tick(Math.min(dt, 100));
 }
 
 // ================= Boot =================
@@ -1900,6 +2097,7 @@ function frame() {
   buildGlobal();
   buildRack();
   fillPresets();
+  buildVisuals();
   pushHistory();
   requestAnimationFrame(frame);
 })();
