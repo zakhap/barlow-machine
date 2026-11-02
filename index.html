@@ -24,20 +24,37 @@ button,select,input{font:inherit;color:inherit}
 ::selection{background:var(--ink);color:var(--bg)}
 
 /* ---------- top bar ---------- */
-.top{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;padding:18px 28px;background:var(--body);border-bottom:1px solid var(--rule)}
-.brand{display:flex;align-items:center;gap:12px;margin-right:8px}
-.brand b{font:500 11px/1 var(--sans);letter-spacing:.42em;text-transform:uppercase;color:var(--ink)}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;padding:12px 24px;background:var(--body);border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:10px;height:34px;margin-right:4px}
+.brand b{font:500 11px/1 var(--sans);letter-spacing:.28em;text-transform:uppercase;color:var(--ink)}
 .grp{display:flex;gap:14px;align-items:center}
 .vsep{width:1px;align-self:stretch;background:var(--rule)}
 .btn{background:transparent;border:1px solid var(--rule2);border-radius:2px;padding:6px 11px;cursor:pointer;white-space:nowrap;font:var(--cap);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
 .btn:hover{color:var(--ink);border-color:var(--dim)}
 .btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .btn:disabled{opacity:.4;cursor:default}
-#play{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;padding:0;border-color:var(--ink2);color:var(--ink)}
+#play{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;padding:0;border-color:var(--ink2);color:var(--ink);font-size:8px;letter-spacing:.1em}
 #play.on{background:var(--ink);color:var(--bg)}
-.hold{width:52px;height:52px;border-radius:2px;display:grid;place-items:center;user-select:none;touch-action:none}
-.scenes{display:grid;grid-template-columns:repeat(4,24px);gap:6px}
-.scene{width:24px;height:24px;border-radius:50%;border:1px solid var(--rule2);background:transparent;color:var(--faint);font:400 10px var(--mono);cursor:pointer;padding:0}
+.hold{user-select:none;touch-action:none}
+/* header cells: a small caption over one 24px line of controls, every cell bottom-aligned */
+.hcell{display:flex;flex-direction:column;gap:6px}
+.cap{font:var(--cap);letter-spacing:.2em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
+.top .btn{height:24px;padding:0 9px;display:inline-grid;place-items:center}
+.top select{height:24px;padding:0 6px;max-width:160px}
+.top .outs{margin-left:auto}
+.top .gscreen,.top .gscreen .gcol{min-width:0;align-self:auto}
+.top .gcol{display:flex;gap:16px}
+.top .gcol h5{display:none}
+.top .prm{flex-direction:column;justify-content:flex-start;gap:6px;border:0}
+.top .pl{font:var(--cap);letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.top .pv{font:400 11.5px/24px var(--mono)}
+.top .prm:hover .pl{color:var(--ink2)}
+.menuWrap{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 6px);z-index:60;display:flex;flex-direction:column;gap:4px;padding:6px;background:#222221;border:1px solid var(--rule2);border-radius:3px;box-shadow:0 16px 48px rgba(0,0,0,.55)}
+.menu[hidden]{display:none}
+.top .menu .btn{place-items:center start}
+.scenes{display:grid;grid-template-columns:repeat(8,20px);gap:4px}
+.scene{width:20px;height:20px;margin:2px 0;border-radius:50%;border:1px solid var(--rule2);background:transparent;color:var(--faint);font:400 9.5px var(--mono);cursor:pointer;padding:0}
 .scene.full{border-color:var(--dim);color:var(--ink2)}
 .scene.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .scene.pending{animation:blink .3s steps(2) infinite}
@@ -178,7 +195,8 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   .bloomWrap{position:relative;top:0;max-width:600px;margin:0 auto 20px}
 }
 @media (max-width:820px){
-  .top{padding:14px 16px;gap:14px 18px}.stage{padding:16px}footer{padding:16px 16px 32px}
+  .top{padding:14px 16px;gap:14px 18px}
+  .top .row,.top .gcol{flex-wrap:wrap;row-gap:10px}.top .outs{margin-left:0}.stage{padding:16px}footer{padding:16px 16px 32px}
   .dbody{grid-template-columns:1fr}
   .grid3,.grid2{grid-template-columns:1fr}
   .gcol + .gcol{margin-top:10px}
@@ -202,46 +220,47 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" fill="none" stroke="#ecebe6" stroke-width="1"/><line x1="9" y1="9" x2="9" y2="2.5" stroke="#ecebe6" stroke-width="1.4" stroke-linecap="round"/></svg>
     <b>Clarence Machine</b>
   </div>
-  <div class="vsep"></div>
-  <div class="grp">
-    <button class="btn" id="play" title="Start or stop. Space.">Play</button>
-  </div>
-  <div class="vsep"></div>
+  <button class="btn" id="play" title="Start or stop. Space.">Play</button>
   <div class="gscreen" id="timeScreen"></div>
-  <div class="vsep"></div>
-  <div class="grp">
-    <button class="btn hold" id="fillBtn" title="Hold for more hits and ratchets. F.">FILL</button>
-    <button class="btn hold" id="dropBtn" title="Hold to cut every rhythm to its strongest step. D.">DROP</button>
+  <div class="hcell">
+    <span class="cap">Hold</span>
+    <div class="row">
+      <button class="btn hold" id="fillBtn" title="Hold for more hits and ratchets. F.">Fill</button>
+      <button class="btn hold" id="dropBtn" title="Hold to cut every rhythm to its strongest step. D.">Drop</button>
+    </div>
   </div>
-  <div class="vsep"></div>
-  <div class="grp">
-    <span class="slab">Scenes</span>
+  <div class="hcell">
+    <span class="cap">Scenes</span>
     <div class="scenes" id="scenes"></div>
   </div>
-  <div class="vsep"></div>
-  <div class="gscreen" id="mixScreen"></div>
-  <div class="vsep"></div>
-  <div class="col">
+  <div class="hcell">
+    <span class="cap">Preset</span>
     <div class="row">
       <select id="presets"></select>
       <button class="btn" id="undo" title="Undo. ⌘Z.">↶</button>
       <button class="btn" id="redo" title="Redo. ⇧⌘Z.">↷</button>
       <button class="btn" id="mutateAll" title="Randomize every rhythm. M, or ⇧Q–⇧I for one.">Mutate</button>
-    </div>
-    <div class="row">
       <button class="btn" id="save" title="Save as a preset in this browser.">Save</button>
-      <button class="btn" id="share" title="Copy a link to this exact state.">Copy link</button>
-      <button class="btn" id="bounce" title="Render 4 cycles to a WAV file.">Bounce WAV</button>
-      <button class="btn" id="midiFile" title="Export 4 cycles as a MIDI file.">MIDI file</button>
+      <div class="menuWrap" id="shareWrap">
+        <button class="btn" id="shareBtn" title="Copy a link, or export audio or MIDI.">Share ▾</button>
+        <div class="menu" id="shareMenu" hidden>
+          <button class="btn" id="share" title="Copy a link to this exact state.">Copy link</button>
+          <button class="btn" id="bounce" title="Render 4 cycles to a WAV file.">Bounce WAV</button>
+          <button class="btn" id="midiFile" title="Export 4 cycles as a MIDI file.">MIDI file</button>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="col">
+  <div class="gscreen" id="mixScreen"></div>
+  <div class="hcell outs">
+    <span class="cap">Output</span>
     <div class="row">
-      <button class="btn" id="midiBtn" title="Send notes to a MIDI device.">MIDI out</button>
-      <select id="midiOut" hidden></select>
       <button class="btn on" id="synthBtn" title="Turn the built-in sound on or off.">Synth</button>
+      <button class="btn" id="midiBtn" title="Send notes to a MIDI device.">MIDI</button>
+      <select id="midiOut" hidden></select>
+      <button class="btn" id="performBtn" title="Show only the Bloom. P.">Perform</button>
+      <button class="btn" id="visBtn" title="Full-screen visuals driven by the rhythms. V, Esc to close.">Visuals</button>
     </div>
-    <div class="row"><button class="btn" id="performBtn" title="Show only the Bloom. P.">Perform</button><button class="btn" id="visBtn" title="Full-screen visuals driven by the rhythms. V, Esc to close.">Visuals</button></div>
   </div>
 </header>
 
@@ -566,6 +585,147 @@ const PRESETS = {
     V("clave", { steps: 20, pattern: "x..x..x...x..x..x...", accent: 0.3, level: 0.6, pan: 0.25 }),
     V("conga", { length: 4, steps: 16, density: 0.4, lock: "avoid", spin: -1, chance: 0.85, ghost: 0.3, ratchetChance: 0.1, pitchSrc: "weight", pitchRange: 5, pan: -0.25 }),
     V("shaker", { length: 2.5, steps: 10, density: 0.6, spin: 1, weakDrop: 0.3, chance: 0.85, ratchetChance: 0.12, ratchet: 3, level: 0.4, pan: 0.15 }),
+  ]},
+  // House: four on the floor, clap on 2 and 4 and an open hat on the offbeats hold the frame.
+  // Swung sixteenth hats and shaker thin out and drift, the sub avoids the kick and wanders the minor scale,
+  // and a 3-beat conga turns forward against the bar.
+  "House, loosened": { bpm: 124, beats: 4, energy: 0.5, driftEvery: 4, duck: 0.5, room: 0.15, voices: [
+    V("kick", { pattern: "x...x...x...x...", accent: 0.15, decay: 0.4, tone: 0.35 }),
+    V("snare", { pattern: "....x.......x...", ghost: 0.1, ratchetChance: 0.04, jitter: 3, tone: 0.7, decay: 0.3, level: 0.65 }),
+    V("hat", { pattern: "..x...x...x...x.", decay: 0.9, accent: 0.2, chance: 0.95, velJitter: 0.15, level: 0.4, pan: 0.2 }),
+    V("hat", { density: 0.6, weakDrop: 0.45, chance: 0.88, swing: 0.18, ratchet: 3, ratchetChance: 0.08, velJitter: 0.35, accent: 0.8, drift: 0.2, decay: 0.15, level: 0.35, pan: -0.2 }),
+    V("sub", { density: 0.25, lock: "avoid", chance: 0.85, drift: 0.3, pitchSrc: "weight", pitchRange: 7, scale: "minor", note: 33, decay: 0.25, strokes: false, level: 0.75 }),
+    V("shaker", { density: 0.5, weakDrop: 0.4, chance: 0.8, swing: 0.18, jitter: 4, drift: 0.25, level: 0.3, pan: 0.3 }),
+    V("conga", { length: 3, steps: 12, density: 0.34, lock: "avoid", spin: 1, chance: 0.8, ghost: 0.3, ratchetChance: 0.08, pitchSrc: "weight", pitchRange: 5, note: 55, swing: 0.12, level: 0.55, pan: -0.3 }),
+  ]},
+  // 2-step garage on a two-bar kick: the second bar skips the downbeat. The rim is the top three ranks
+  // rotated by 3, which moves them onto the weakest sixteenths so the swing catches every hit.
+  // The bass jumps an octave on weak steps and drifts across the two bars.
+  "2-step garage": { bpm: 132, beats: 4, energy: 0.5, driftEvery: 4, duck: 0.45, room: 0.18, voices: [
+    V("kick", { length: 8, steps: 32, pattern: "x.........x.......x.......x.....", accent: 0.15, ghost: 0.05, decay: 0.35, tone: 0.3 }),
+    V("snare", { pattern: "....x.......x...", ghost: 0.15, swing: 0.5, ratchetChance: 0.03, jitter: 2, tone: 0.75, decay: 0.25, level: 0.6 }),
+    V("clave", { density: 0.19, rotation: 3, swing: 0.5, chance: 0.9, drift: 0.35, accent: 0.2, note: 84, decay: 0.1, level: 0.4, pan: -0.3 }),
+    V("hat", { density: 0.69, weakDrop: 0.35, chance: 0.9, swing: 0.55, ratchet: 2, ratchetChance: 0.06, velJitter: 0.3, accent: 0.7, drift: 0.2, decay: 0.15, level: 0.35, pan: 0.25 }),
+    V("hat", { pattern: "..x...x...x...x.", decay: 0.8, accent: 0.15, chance: 0.9, velJitter: 0.2, level: 0.3, pan: -0.15 }),
+    V("sub", { length: 8, steps: 32, density: 0.22, lock: "avoid", chance: 0.85, swing: 0.5, drift: 0.35, pitchSrc: "weight", pitchRange: 12, scale: "octave", note: 33, decay: 0.3, strokes: false, level: 0.75 }),
+    V("shaker", { density: 0.5, weakDrop: 0.3, chance: 0.85, swing: 0.55, jitter: 3, drift: 0.2, velJitter: 0.25, level: 0.28, pan: 0.4 }),
+  ]},
+  // Amapiano: a soft four on the floor and a shaker carrying the sixteenths. The log drum is a pitched kick playing
+  // Euclid 3 in 8 (tresillo) every two beats, and drift slides the tresillo around the bar.
+  // The keys are a tuned bar on random minor notes, steering around the kit.
+  "Amapiano": { bpm: 113, beats: 4, energy: 0.5, driftEvery: 4, duck: 0.4, room: 0.22, voices: [
+    V("kick", { pattern: "x...x...x...x...", accent: 0.1, decay: 0.3, tone: 0.2, level: 0.7 }),
+    V("snare", { pattern: "....x.......x...", ghost: 0.12, swing: 0.2, jitter: 3, tone: 0.8, decay: 0.2, level: 0.45, pan: 0.1 }),
+    V("kick", { length: 2, steps: 8, mode: "euclid", density: 0.375, chance: 0.9, drift: 0.35, ghost: 0.1, ratchet: 2, ratchetChance: 0.12, pitchSrc: "weight", pitchRange: 7, scale: "penta", note: 41, decay: 0.55, tone: 0.1, level: 0.85 }),
+    V("shaker", { density: 0.9, accent: 0.7, weakDrop: 0.15, swing: 0.22, velJitter: 0.25, jitter: 2, drift: 0.1, level: 0.4, pan: -0.2 }),
+    V("hat", { pattern: "..x...x...x...x.", decay: 0.6, chance: 0.92, velJitter: 0.15, level: 0.3, pan: 0.25 }),
+    V("conga", { length: 8, steps: 32, density: 0.22, chance: 0.85, ghost: 0.3, swing: 0.2, drift: 0.4, pitchSrc: "weight", pitchRange: 5, note: 55, level: 0.5, pan: -0.35 }),
+    V("clave", { density: 0.25, lock: "avoid", chance: 0.8, swing: 0.2, drift: 0.4, pitchSrc: "random", pitchRange: 10, scale: "minor", note: 69, decay: 1, tone: 0.15, vary: 0.3, level: 0.45, pan: 0.35 }),
+  ]},
+  // Footwork at 160: the kick is Euclid 5 in 16 turned to dotted eighths (3+3+3+3+4) against the four.
+  // Toms play triplet eighths and turn forward a step each bar, hats play sixteenth triplets with rolls,
+  // and a 1½-beat bell loop only lines up with the bar every three bars. The 808 joins the kick on random minor notes.
+  "Footwork, triplets": { bpm: 160, beats: 4, energy: 0.5, driftEvery: 2, duck: 0.3, room: 0.12, drive: 0.35, voices: [
+    V("kick", { mode: "euclid", density: 0.3125, rotation: 12, accent: 0.2, drift: 0.3, decay: 0.55, tone: 0.25 }),
+    V("snare", { pattern: "....x.......x...", ratchet: 3, ratchetChance: 0.15, ghost: 0.08, tone: 0.7, decay: 0.25, level: 0.6 }),
+    V("sub", { density: 0.25, lock: "join", chance: 0.9, drift: 0.3, pitchSrc: "random", pitchRange: 7, scale: "minor", note: 31, decay: 0.8, strokes: false, level: 0.75 }),
+    V("conga", { steps: 12, density: 0.33, lock: "avoid", spin: 1, chance: 0.8, ghost: 0.2, ratchet: 3, ratchetChance: 0.12, pitchSrc: "weight", pitchRange: -7, scale: "penta", note: 50, decay: 0.4, level: 0.6, pan: -0.3 }),
+    V("hat", { steps: 24, density: 0.5, weakDrop: 0.4, ratchet: 2, ratchetChance: 0.1, velJitter: 0.35, accent: 0.8, drift: 0.3, decay: 0.1, level: 0.35, pan: 0.25 }),
+    V("cowbell", { length: 1.5, steps: 9, density: 0.34, spin: 1, chance: 0.75, ratchet: 3, ratchetChance: 0.2, pitchSrc: "step", pitchRange: 7, scale: "penta", note: 76, decay: 0.25, level: 0.3, pan: 0.4 }),
+  ]},
+  // Juke / ghetto house: straight sixteenths and a kick that doubles into beat 4.
+  // The clap fires machine-gun rolls. The 808 joins the kick in fifths, and a one-beat chant figure turns every beat.
+  // A 3-beat tom line turns backward against the bar.
+  "Juke": { bpm: 158, beats: 4, energy: 0.55, driftEvery: 2, duck: 0.35, room: 0.1, drive: 0.4, voices: [
+    V("kick", { pattern: "x...x...x..x.x..", accent: 0.2, ghost: 0.08, decay: 0.4, tone: 0.4 }),
+    V("snare", { pattern: "....x.......x..x", ratchet: 4, ratchetChance: 0.2, ghost: 0.1, tone: 0.8, decay: 0.2, level: 0.6 }),
+    V("hat", { density: 0.75, accent: 0.9, weakDrop: 0.2, ratchet: 2, ratchetChance: 0.15, velJitter: 0.4, drift: 0.25, decay: 0.12, level: 0.35, pan: 0.2 }),
+    V("sub", { density: 0.31, lock: "join", chance: 0.9, drift: 0.35, pitchSrc: "random", pitchRange: 12, scale: "fifths", note: 33, decay: 0.6, strokes: false, level: 0.7 }),
+    V("cowbell", { length: 1, steps: 4, density: 0.5, spin: 1, chance: 0.7, ratchet: 3, ratchetChance: 0.35, drift: 0.5, pitchSrc: "random", pitchRange: 12, scale: "minor", note: 72, decay: 0.2, level: 0.28, pan: -0.3 }),
+    V("conga", { length: 3, steps: 12, density: 0.25, spin: -1, chance: 0.85, ratchet: 3, ratchetChance: 0.15, pitchSrc: "weight", pitchRange: -12, scale: "penta", note: 52, decay: 0.35, level: 0.55, pan: 0.35 }),
+    V("clave", { mode: "euclid", density: 0.4375, rotation: 2, chance: 0.7, drift: 0.4, note: 88, decay: 0.1, level: 0.3, pan: -0.1 }),
+  ]},
+  // A 16-beat lancaran. Each colotomic gong is one density level of the Barlow tree, and Avoid places it.
+  // Gong takes rank 1, kenong ranks 1-4, kempul avoids them and lands on beats 6, 10 and 14 (as it should),
+  // and kethuk is the top half rotated onto the off-beats. The saron melody comes from the weights, so it repeats
+  // every gongan. The two bonangs interlock (imbal) at four per beat and drift, and the kendhang drum leads.
+  // Change the bonangs' Grid to change irama.
+  "Gamelan lancaran": { bpm: 80, beats: 16, energy: 0.5, driftEvery: 1, duck: 0, room: 0.4, drive: 0.1, voices: [
+    V("sub", { steps: 16, density: 0.0625, note: 28, decay: 1, tone: 0.2, vary: 0.3, strokes: false, level: 0.8 }),
+    V("cowbell", { steps: 16, density: 0.25, pitchSrc: "weight", pitchRange: 5, scale: "penta", note: 67, decay: 1, tone: 0.2, vary: 0.4, level: 0.5, pan: 0.1 }),
+    V("cowbell", { steps: 16, density: 0.1875, lock: "avoid", pitchSrc: "weight", pitchRange: 7, scale: "penta", note: 62, decay: 0.9, tone: 0.2, vary: 0.4, level: 0.45, pan: -0.3 }),
+    V("cowbell", { steps: 16, density: 0.5, rotation: 1, accent: 0.3, note: 74, decay: 0.05, tone: 0.1, level: 0.3, pan: 0.3 }),
+    V("clave", { steps: 16, density: 1, accent: 0.3, pitchSrc: "weight", pitchRange: 12, scale: "penta", note: 69, decay: 1, tone: 0.3, vary: 0.4, level: 0.55 }),
+    V("cowbell", { steps: 64, density: 0.3, chance: 0.85, drift: 0.3, accent: 0.5, pitchSrc: "weight", pitchRange: 12, scale: "penta", note: 74, decay: 0.3, tone: 0.3, vary: 0.4, level: 0.3, pan: -0.45 }),
+    V("cowbell", { steps: 64, density: 0.3, lock: "avoid", chance: 0.85, drift: 0.3, accent: 0.5, pitchSrc: "weight", pitchRange: 12, scale: "penta", note: 79, decay: 0.3, tone: 0.3, vary: 0.4, level: 0.3, pan: 0.45 }),
+    V("conga", { steps: 32, density: 0.3, chance: 0.85, ghost: 0.3, drift: 0.4, swing: 0.1, velJitter: 0.2, ratchet: 2, ratchetChance: 0.08, decay: 0.4, level: 0.55, pan: -0.1 }),
+  ]},
+  // Adi tala, 8 beats (4+2+2). The top three ranks of 2·2·2 are beats 1, 5 and 7, which are exactly the tala's claps.
+  // The mridangam plays in four (chatusra) with strokes chosen by weight. The ghatam plays in three (tisra)
+  // and the kanjira in five (khanda), both steering around it, and a drone marks sam.
+  "Adi tala, three gatis": { bpm: 80, beats: 8, energy: 0.45, driftEvery: 1, duck: 0, room: 0.25, drive: 0.15, voices: [
+    V("snare", { steps: 8, density: 0.375, accent: 0.3, tone: 0.9, decay: 0.05, level: 0.3 }),
+    V("sub", { steps: 8, density: 0.125, note: 38, decay: 1, tone: 0.3, strokes: false, level: 0.5 }),
+    V("bongo", { steps: 32, density: 0.47, accent: 0.6, weakDrop: 0.3, ghost: 0.25, ratchet: 3, ratchetChance: 0.1, velJitter: 0.2, drift: 0.25, chance: 0.9, note: 62, decay: 0.5, tone: 0.55, pan: 0.15 }),
+    V("conga", { steps: 32, density: 0.19, lock: "avoid", ghost: 0.15, chance: 0.85, drift: 0.3, note: 43, decay: 0.6, tone: 0.2, pan: -0.1 }),
+    V("conga", { steps: 24, density: 0.34, lock: "avoid", chance: 0.8, ghost: 0.2, ratchet: 2, ratchetChance: 0.08, drift: 0.35, note: 57, decay: 0.2, tone: 0.8, level: 0.5, pan: -0.4 }),
+    V("bongo", { steps: 40, density: 0.28, lock: "avoid", chance: 0.8, ghost: 0.2, drift: 0.4, note: 70, decay: 0.3, tone: 0.7, level: 0.45, pan: 0.4 }),
+  ]},
+  // Minimal techno. Kick, clap and open hat hold the bar. Everything else is a loop of an odd length: a 3/8 rim,
+  // a 5/8 conga, a 7/8 dub bass and a 9/8 bleep. They come back into line with the bar only
+  // every few minutes, and drift works on all of them.
+  "Minimal, odd loops": { bpm: 126, beats: 4, energy: 0.5, driftEvery: 2, duck: 0.5, room: 0.28, voices: [
+    V("kick", { pattern: "x...x...x...x...", accent: 0.1, decay: 0.35, tone: 0.25 }),
+    V("snare", { pattern: "....x.......x...", chance: 0.9, ghost: 0.12, jitter: 4, tone: 0.8, decay: 0.2, level: 0.4 }),
+    V("hat", { pattern: "..x...x...x...x.", decay: 0.45, velJitter: 0.2, level: 0.3, pan: 0.15 }),
+    V("hat", { density: 0.5, weakDrop: 0.5, chance: 0.85, swing: 0.08, ratchet: 2, ratchetChance: 0.06, velJitter: 0.45, drift: 0.35, decay: 0.1, level: 0.28, pan: -0.25 }),
+    V("clave", { length: 1.5, steps: 6, density: 0.34, chance: 0.9, drift: 0.3, note: 79, decay: 0.1, level: 0.4, pan: 0.35 }),
+    V("conga", { length: 2.5, steps: 10, density: 0.3, chance: 0.85, ghost: 0.3, drift: 0.35, pitchSrc: "weight", pitchRange: 5, scale: "penta", note: 52, decay: 0.3, level: 0.5, pan: -0.35 }),
+    V("sub", { length: 3.5, steps: 14, density: 0.22, chance: 0.9, drift: 0.25, pitchSrc: "weight", pitchRange: -5, scale: "minor", note: 33, decay: 0.35, strokes: false, level: 0.7 }),
+    V("cowbell", { length: 4.5, steps: 18, density: 0.17, chance: 0.7, drift: 0.5, pitchSrc: "random", pitchRange: 12, scale: "fifths", note: 84, decay: 0.2, tone: 0.7, level: 0.22, pan: 0.2 }),
+  ]},
+  // Piano phase as a real gradual phase. One figure of 12 sixteenths is split across three marimba notes.
+  // Piano 1 plays it four times in 12 beats. Piano 2 plays the same figure over 12½ beats, so it slips
+  // continuously, a little every note rather than a step at a time. The figure comes back into unison every 75 beats.
+  "Piano phase, gradual": { bpm: 116, beats: 12, energy: 0.5, driftEvery: 4, duck: 0, room: 0.3, drive: 0.1, voices: [
+    V("clave", { steps: 48, pattern: "x....x..x...x....x..x...x....x..x...x....x..x...", accent: 0.15, note: 64, decay: 1, tone: 0.25, vary: 0.15, level: 0.5, pan: -0.55 }),
+    V("clave", { steps: 48, pattern: ".x.x..x..x.x.x.x..x..x.x.x.x..x..x.x.x.x..x..x.x", accent: 0.15, note: 71, decay: 1, tone: 0.25, vary: 0.15, level: 0.45, pan: -0.55 }),
+    V("clave", { steps: 48, pattern: "..x.x..x..x...x.x..x..x...x.x..x..x...x.x..x..x.", accent: 0.15, note: 74, decay: 1, tone: 0.25, vary: 0.15, level: 0.45, pan: -0.55 }),
+    V("clave", { length: 12.5, steps: 48, pattern: "x....x..x...x....x..x...x....x..x...x....x..x...", accent: 0.15, note: 64, decay: 1, tone: 0.25, vary: 0.15, level: 0.5, pan: 0.55 }),
+    V("clave", { length: 12.5, steps: 48, pattern: ".x.x..x..x.x.x.x..x..x.x.x.x..x..x.x.x.x..x..x.x", accent: 0.15, note: 71, decay: 1, tone: 0.25, vary: 0.15, level: 0.45, pan: 0.55 }),
+    V("clave", { length: 12.5, steps: 48, pattern: "..x.x..x..x...x.x..x..x...x.x..x..x...x.x..x..x.", accent: 0.15, note: 74, decay: 1, tone: 0.25, vary: 0.15, level: 0.45, pan: 0.55 }),
+  ]},
+  // Clapping Music for four. One player holds the figure. The other three each move one step every few times through,
+  // at different rates: forward every 4, backward every 3 and forward every 5.
+  // Every pair keeps meeting in new combinations, and all four line up again only after 4320 beats.
+  "Clapping, four players": { bpm: 120, beats: 6, energy: 0.5, driftEvery: 4, duck: 0, room: 0.2, drive: 0.15, voices: [
+    V("clave", { steps: 12, pattern: "xxx.xx.x.xx.", accent: 0.3, note: 77, decay: 0.5, tone: 0.4, level: 0.55 }),
+    V("bongo", { length: 24, steps: 48, pattern: "xxx.xx.x.xx.xxx.xx.x.xx.xxx.xx.x.xx.xxx.xx.x.xx.", spin: 1, accent: 0.35, note: 64, decay: 0.5, pan: -0.6 }),
+    V("bongo", { length: 18, steps: 36, pattern: "xxx.xx.x.xx.xxx.xx.x.xx.xxx.xx.x.xx.", spin: -1, accent: 0.35, note: 71, decay: 0.5, pan: 0.6 }),
+    V("conga", { length: 30, steps: 60, pattern: "xxx.xx.x.xx.xxx.xx.x.xx.xxx.xx.x.xx.xxx.xx.x.xx.xxx.xx.x.xx.", spin: 1, accent: 0.35, note: 52, decay: 0.45, level: 0.7, pan: 0.2 }),
+  ]},
+  // After Music for 18: three marimbas pulse an open chord in eighths. Three more play one Barlow figure in canon,
+  // 1½ and 3¾ beats apart. A seventh plays the same figure over 6½ beats, so it drifts slowly through the canon.
+  // The bass turns one step each lap, and its pitches follow the step weights, so the harmony changes every 6 beats.
+  "Pulse and canon": { bpm: 132, beats: 6, energy: 0.5, driftEvery: 4, duck: 0, room: 0.35, drive: 0.1, voices: [
+    V("clave", { steps: 12, density: 1, accent: 0.1, velJitter: 0.08, note: 57, decay: 1, tone: 0.2, vary: 0.2, level: 0.35, pan: -0.3 }),
+    V("clave", { steps: 12, density: 1, accent: 0.1, velJitter: 0.08, note: 64, decay: 1, tone: 0.2, vary: 0.2, level: 0.3 }),
+    V("clave", { steps: 12, density: 1, accent: 0.1, velJitter: 0.08, note: 71, decay: 1, tone: 0.2, vary: 0.2, level: 0.3, pan: 0.3 }),
+    V("clave", { steps: 24, density: 0.375, accent: 0.4, note: 69, decay: 1, tone: 0.35, vary: 0.2, level: 0.45, pan: -0.6 }),
+    V("clave", { steps: 24, density: 0.375, rotation: 6, accent: 0.4, note: 76, decay: 1, tone: 0.35, vary: 0.2, level: 0.4, pan: 0.6 }),
+    V("clave", { steps: 24, density: 0.375, rotation: 15, accent: 0.4, note: 81, decay: 1, tone: 0.35, vary: 0.2, level: 0.35, pan: -0.15 }),
+    V("clave", { length: 6.5, steps: 24, density: 0.375, accent: 0.4, note: 74, decay: 1, tone: 0.35, vary: 0.2, level: 0.35, pan: 0.15 }),
+    V("sub", { steps: 6, density: 0.34, spin: 1, pitchSrc: "weight", pitchRange: -7, scale: "minor", note: 45, decay: 0.7, tone: 0.3, strokes: false, level: 0.6 }),
+  ]},
+  // Hemiola, after the Sextet. Three marimbas share 12 eighths, and each plays the strongest steps of a different meter.
+  // 2·2·3 gives dotted quarters (6/8), 3·2·2 gives quarters (3/4), and 2·3·2 gives x...x.x...x.
+  // A bongo in 3·2·2 steers around them and turns forward, and the bass turns backward.
+  "Hemiola": { bpm: 144, beats: 6, energy: 0.5, driftEvery: 4, duck: 0, room: 0.3, drive: 0.1, voices: [
+    V("clave", { steps: 12, factors: [2,2,3], density: 0.34, accent: 0.5, note: 69, decay: 1, tone: 0.3, vary: 0.2, level: 0.45, pan: -0.45 }),
+    V("clave", { steps: 12, factors: [3,2,2], density: 0.25, accent: 0.5, note: 76, decay: 1, tone: 0.3, vary: 0.2, level: 0.4, pan: 0.45 }),
+    V("clave", { steps: 12, factors: [2,3,2], density: 0.34, accent: 0.5, note: 64, decay: 1, tone: 0.3, vary: 0.2, level: 0.45 }),
+    V("bongo", { steps: 12, factors: [3,2,2], density: 0.33, lock: "avoid", spin: 1, accent: 0.4, note: 67, decay: 0.45, level: 0.5, pan: 0.25 }),
+    V("sub", { steps: 6, density: 0.34, spin: -1, pitchSrc: "weight", pitchRange: 7, scale: "minor", note: 45, decay: 0.6, strokes: false, level: 0.6 }),
   ]},
 };
 const DEFAULT_PRESET = "Cascara crossfire";
@@ -1591,9 +1751,9 @@ function buildGlobal() {
   };
   column("timeScreen", "Time", [
     { label: "Tempo", title: "Beats per minute.", min: 40, max: 200, step: 1, def: 96, fmt: x => x + " bpm", get: () => S.bpm, set: x => { rebaseClock(); S.bpm = x; changed(); } },
-    { label: "Cycle", title: "Beats in the global cycle. Grid rhythms rebuild their steps to fit.", min: 1, max: 8, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); edited(); } },
+    { label: "Cycle", title: "Beats in the global cycle. Grid rhythms rebuild their steps to fit.", min: 1, max: 16, step: 1, def: 4, fmt: x => x + (x > 1 ? " beats" : " beat"), get: () => S.beats, set: x => { S.beats = x; S.rhythms.forEach((v, ri) => { if (!v.length) { applyGrid(ri, false); resyncIdx(ri); } }); edited(); } },
     { label: "Energy", title: "Above 50% adds hits, ghosts and ratchets. Below 50% thins weak hits. Keys [ and ].", min: 0, max: 1, step: 0.01, def: 0.5, fmt: PCT, get: () => S.energy, set: x => { S.energy = x; edited(); } },
-    { label: "Drift every", title: "Cycles between drift changes.", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } },
+    { label: "Drift", title: "Cycles between drift changes.", min: 1, max: 8, step: 1, def: 4, fmt: x => x + " cyc", get: () => S.driftEvery, set: x => { S.driftEvery = x; changed(); } },
     { label: "Drift steps", title: "Lets drift change step counts too.", type: "enum", def: false, opts: [[false, "Off"], [true, "On"]], get: () => S.driftSteps, set: x => { S.driftSteps = x; changed(); } },
   ]);
   column("mixScreen", "Mix", [
@@ -1638,6 +1798,8 @@ function buildGlobal() {
     try { await navigator.clipboard.writeText(location.href); e.target.textContent = "Copied ✓"; } catch { e.target.textContent = "Link in URL bar"; }
     setTimeout(() => (e.target.textContent = "Copy link"), 1400);
   };
+  $("shareBtn").onclick = () => ($("shareMenu").hidden = !$("shareMenu").hidden);
+  document.addEventListener("pointerdown", e => { if (!$("shareWrap").contains(e.target)) $("shareMenu").hidden = true; });
   $("bounce").onclick = bounceWav;
   $("midiFile").onclick = exportMidi;
   $("midiBtn").onclick = enableMidi;
@@ -1981,6 +2143,71 @@ const VIS_PRESETS = {
       .hue(() => ph[1])
       .rotate(R(2, 0, 0.5))
       .modulate(osc(4, 0.1), R(3, 0, 0.2));
+  },
+  Technicolor({ osc, noise, R, n, ph }) {
+    // rainbow bands: r[0] packs them, ph[0] rolls the spectrum, r[1]–r[3] melt and smear them,
+    // n[4] steps the mirrors, r[5] twists, r[6] and r[7] split the color channels
+    return osc(R(0, 14, 60), 0.05, () => 1 + ph[0] * 3)
+      .modulate(noise(R(1, 2, 8), 0.1), R(2, 0.05, 0.6))
+      .colorama(R(3, 0, 0.35))
+      .kaleid(() => 2 + (n[4] % 6))
+      .modulateRotate(osc(3, 0.1), R(5, 0, 1.2))
+      .shift(R(6, 0, 0.3), R(7, 0, 0.3), 0)
+      .saturate(1.6);
+  },
+  Liquid({ src, osc, shape, o0, R, n, ph, aspect }) {
+    // a hue-shifting feedback pool: r[0] stretches it, r[1] sets how hard color bleeds into itself,
+    // ph[2] drifts the hue, and every hit of r[3]–r[5] pours a striped shape in
+    const pour = osc(30, 0.1, () => 1 + ph[0] * 4).kaleid(() => 3 + (n[4] % 5)).saturate(2)
+      .mask(shape(4, R(3, 0, 0.5), 0.3).scale(1, aspect, 1).rotate(() => ph[6] * TAU))
+      .add(osc(12, 0.05, 2).mask(shape(24, R(5, 0, 0.35), 0.2).scale(1, aspect, 1)));
+    return src(o0).modulateHue(src(o0).scale(R(0, 1.005, 1.05)), R(1, 1, 8))
+      .hue(() => 0.004 + ph[2] * 0.01)
+      .color(0.95, 0.95, 0.95).brightness(-0.008).saturate(1.04)
+      .add(pour);
+  },
+  Prism({ voronoi, osc, noise, R, ph, w }) {
+    // stained glass: r[0]–r[2] reshape the cells, ph[0] rolls a rainbow through them, r[3] and r[4]
+    // wobble them, w[5] tilts with the weight of the last hit, r[6] and r[7] fracture the color
+    return voronoi(R(0, 5, 24), R(1, 0.1, 1.2), R(2, 0.2, 0.9))
+      .mult(osc(6, 0.05, () => 1.5 + ph[0] * 3).rotate(0.6).saturate(2))
+      .modulateScale(osc(R(3, 4, 20), 0.1), R(4, 0, 0.8))
+      .rotate(() => w[5] * 0.6)
+      .colorama(R(6, 0, 0.25))
+      .modulate(noise(4), R(7, 0, 0.3))
+      .saturate(1.4);
+  },
+  Aberration({ noise, osc, R, n }) {
+    // three noise fields, one per color: r[0], r[1] and r[3] scale red, green and blue, r[2] and r[4]
+    // pull green and blue out of register, r[5]/r[6] swirl, n[7] posterizes, n[0] mirrors
+    return noise(R(0, 2, 9), 0.1).color(1, 0.05, 0.1)
+      .add(noise(R(1, 2, 9), 0.1).color(0.05, 1, 0.2).scrollX(R(2, 0, 0.09)))
+      .add(noise(R(3, 2, 9), 0.1).color(0.1, 0.2, 1).scrollY(R(4, 0, 0.09)))
+      .modulateRotate(osc(R(5, 2, 12), 0.1), R(6, 0, 0.7))
+      .posterize(() => 3 + (n[7] % 5), 0.7)
+      .kaleid(() => 2 + (n[0] % 4))
+      .contrast(1.4);
+  },
+  Glitch({ src, osc, shape, o0, R, n, ph, aspect }) {
+    // pixel blocks sized by n[2] and n[3], bands by r[0] and r[1], r[4] breaks the color,
+    // r[5] smears the last frame back in, r[6] stamps a shape whose sides count with n[6]
+    const stamp = shape(() => 3 + (n[6] % 5), R(6, 0, 0.6), 0.01).scale(1, aspect, 1).rotate(() => ph[7] * TAU);
+    return osc(R(0, 5, 60), 0.1, R(1, 0, 3))
+      .pixelate(() => 6 + (n[2] % 10) * 6, () => 4 + (n[3] % 8) * 4)
+      .colorama(R(4, 0, 0.6))
+      .modulate(src(o0).scale(1.02), R(5, 0, 0.35))
+      .diff(stamp)
+      .saturate(1.3);
+  },
+  Tunnel({ src, shape, o0, R, n, aspect }) {
+    // a zoom that never stops: r[0] speeds it, r[1] twists it, r[2] turns the hue as it goes,
+    // r[4] throws a new shape in with n[3] sides, ph[5] colors it
+    const seed = shape(() => 3 + (n[3] % 6), R(4, 0.02, 0.3), 0.02)
+      .mult(osc(8, 0.1, () => 1 + ph[5] * 4).saturate(2.5))
+      .scale(1, aspect, 1);
+    return src(o0).scale(R(0, 1.02, 1.14)).rotate(R(1, 0.01, 0.12)).hue(R(2, 0.01, 0.08))
+      .color(0.93, 0.93, 0.93).brightness(-0.01).saturate(1.05)
+      .add(seed);
   },
 };
 const VIS_NAMES = Object.keys(VIS_PRESETS);
