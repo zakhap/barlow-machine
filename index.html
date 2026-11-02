@@ -166,6 +166,27 @@ select.inst option{text-transform:none;letter-spacing:0}
 .chip.on{border-color:var(--ink);color:var(--ink)}
 .chip.ghost{border-style:dashed}
 .tree{width:100%;height:92px;display:block;cursor:pointer}
+/* folded rhythm: one row with the steps, the main levers and what's been changed */
+.fold{width:22px;height:22px;padding:0;border:0;background:none;color:var(--dim);font:400 13px/22px var(--sans);text-align:center;display:inline-block;cursor:pointer;flex:none;transition:transform .12s}
+.fold:hover{color:var(--ink)}
+.dev:not(.folded) .fold{transform:rotate(90deg)}
+.dmini{display:none;grid-template-columns:130px minmax(120px,1fr) auto auto;grid-template-areas:"lead strip levers ms" ". mods mods mods";gap:2px 16px;align-items:center}
+.dev.folded{padding-top:10px;padding-bottom:10px}
+.dev.folded::before{top:10px;bottom:10px}
+.dev.folded .dhead,.dev.folded .dbody,.dev.folded .dfoot{display:none}
+.dev.folded .dmini{display:grid}
+.dmini .lead{grid-area:lead;display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
+.dmini .lead .playsName{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.strip{grid-area:strip;width:100%;height:24px;display:block;cursor:pointer}
+.levers{grid-area:levers;display:flex;gap:14px}
+.levers .prm{gap:6px;font-size:11px}
+.levers .pv{min-width:34px;text-align:right}
+.mods{grid-area:mods;color:var(--faint);font:400 10px/1.5 var(--mono);cursor:pointer}
+.mods.on{color:var(--ink2)}
+.mods:hover{color:var(--ink)}
+.dmini .ms{grid-area:ms;display:flex;gap:6px}
+.dmini .btn{padding:0;width:22px;height:22px;border-radius:50%;letter-spacing:0;font:400 9.5px var(--mono)}
+.rtitle{justify-content:space-between}
 
 footer{padding:24px 28px 48px;color:var(--dim);max-width:980px;font:300 12px/1.8 var(--sans)}
 footer b{color:var(--ink2);font-weight:500}
@@ -202,6 +223,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
   .gcol + .gcol{margin-top:10px}
   .fan{margin:0 auto}
   .dfoot{grid-template-columns:1fr}
+  .dmini{grid-template-columns:1fr auto;grid-template-areas:"lead ms" "levers levers" "strip strip" "mods mods";row-gap:8px}
   .instGrid{grid-template-columns:1fr}
   .slab{display:none}
 }
@@ -276,7 +298,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
         
       </div>
     </section>
-    <div class="ptitle"><h2>Rhythms</h2></div>
+    <div class="ptitle rtitle"><h2>Rhythms</h2><button class="btn" id="foldAll" title="Fold every rhythm to one row, or open them all.">Fold all</button></div>
     <div class="rhythms" id="rhythms"></div>
     <section class="panel">
       <div class="ptitle"><h2>Instruments</h2></div>
@@ -1733,9 +1755,34 @@ function buildPatch() {
   }
 }
 
+// Folding is a view setting for this browser, not part of the state or the link.
+const FOLD_KEY = "microrhythmica.folded";
+let folded = store.get(FOLD_KEY, []);
+const MINI_KEYS = ["steps", "density", "rotation"];
+function setFolded(ri, on) {
+  folded[ri] = on; store.set(FOLD_KEY, folded);
+  rhyUI[ri].dev.classList.toggle("folded", on);
+  RT[ri].dirty = true; syncFoldAll();
+}
+function syncFoldAll() { $("foldAll").textContent = S.rhythms.every((_, ri) => folded[ri]) ? "Open all" : "Fold all"; }
+// every setting off its default except the levers on the folded row, plus hand-flipped steps
+function modList(ri) {
+  const v = S.rhythms[ri], out = [];
+  for (const [, keys] of R_GROUPS) for (const k of keys) {
+    const o = R_SPEC[k], x = v[k];
+    if (MINI_KEYS.includes(k) || x === val(o.def)) continue;
+    out.push(o.label + " " + (o.type === "enum" ? (o.opts.find(p => p[0] === x) || [, x])[1] : o.fmt ? o.fmt(x) : x));
+  }
+  const flips = [...v.ov].filter(c => c === "1").length;
+  if (flips) out.push(flips + (flips > 1 ? " flips" : " flip"));
+  return out;
+}
+
 function buildRhythm(ri) {
-  const r = RT[ri], dev = el("section", { className: "dev" });
+  const r = RT[ri], dev = el("section", { className: "dev" + (folded[ri] ? " folded" : "") });
   const head = el("div", { className: "dhead" });
+  const fold = el("button", { className: "fold", textContent: "▸", title: "Fold to one row." });
+  fold.onclick = () => setFolded(ri, true);
   const plays = el("div", { className: "plays" });
   const playsName = el("span", { className: "playsName" });
   const readout = el("span", { className: "readout" });
@@ -1745,7 +1792,7 @@ function buildRhythm(ri) {
   mB.onclick = () => setMute(ri, !S.rhythms[ri].mute);
   sB.onclick = () => { S.rhythms[ri].solo = !S.rhythms[ri].solo; edited(); };
   xB.onclick = () => mutate(ri);
-  head.append(el("span", { className: "rlabel", textContent: "R" + (ri + 1) }), el("span", { className: "arrow", textContent: "plays" }), plays, playsName, readout, mB, sB, xB);
+  head.append(fold, el("span", { className: "rlabel", textContent: "R" + (ri + 1) }), el("span", { className: "arrow", textContent: "plays" }), plays, playsName, readout, mB, sB, xB);
   for (let ii = 0; ii < count(); ii++) {
     const b = el("button", { className: "ichip", textContent: ii + 1, title: "Play instrument " + (ii + 1) + "." });
     b.style.setProperty("--ic", vc(ii));
@@ -1769,7 +1816,25 @@ function buildRhythm(ri) {
   body.append(screen, fan);
   const foot = el("div", { className: "dfoot" }), chips = el("div", { className: "chips" }), tree = el("canvas", { className: "tree", title: "The meter as a tree. Leaves are steps, sized by weight. Click one to flip it." });
   foot.append(chips, tree);
-  dev.append(head, body, foot);
+  // the folded row
+  const mini = el("div", { className: "dmini" }), lead = el("div", { className: "lead", title: "Open this rhythm." });
+  const miniName = el("span", { className: "playsName" });
+  lead.append(el("span", { className: "fold", textContent: "▸" }), el("span", { className: "rlabel", textContent: "R" + (ri + 1) }), miniName);
+  lead.onclick = () => setFolded(ri, false);
+  const strip = el("canvas", { className: "strip", title: "Click a step to flip it." });
+  strip.addEventListener("click", e => {
+    const b = strip.getBoundingClientRect(), N = S.rhythms[ri].steps, i = Math.floor(((e.clientX - b.left) / b.width) * N);
+    if (i >= 0 && i < N) toggleStep(ri, i);
+  });
+  const levers = el("div", { className: "levers" }), miniControls = MINI_KEYS.map(k => makeParam({ ...R_SPEC[k], ...local[k], ...(k === "steps" ? { fmt: x => x } : {}), get: () => S.rhythms[ri][k], set: x => setRhythmParam(ri, k, x) }));
+  levers.append(...miniControls.map(c => c.el));
+  const mods = el("span", { className: "mods" });
+  mods.onclick = () => setFolded(ri, false);
+  const mB2 = el("button", { className: "btn m", textContent: "M", title: mB.title }), sB2 = el("button", { className: "btn s", textContent: "S", title: sB.title });
+  mB2.onclick = mB.onclick; sB2.onclick = sB.onclick;
+  mini.append(lead, strip, levers, el("div", { className: "ms" }, ""), mods);
+  mini.querySelector(".ms").append(mB2, sB2);
+  dev.append(head, mini, body, foot);
 
   attachGesture(fan, e => {
     const b = fan.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2, x = e.clientX - cx, y = e.clientY - cy;
@@ -1781,8 +1846,8 @@ function buildRhythm(ri) {
     const b = tree.getBoundingClientRect(), N = S.rhythms[ri].steps, i = Math.floor(((e.clientX - b.left - 14) / (b.width - 28)) * N);
     if (i >= 0 && i < N) toggleStep(ri, i);
   });
-  Object.assign(r, { fan, tree, dirty: true });
-  rhyUI[ri] = { dev, plays, playsName, readout, mB, sB, chips, controls };
+  Object.assign(r, { fan, tree, strip, dirty: true });
+  rhyUI[ri] = { dev, plays, playsName, readout, mB, sB, chips, controls: [...controls, ...miniControls], miniName, mods, mB2, sB2 };
   return dev;
 }
 function syncRhythmUI(ri) {
@@ -1790,8 +1855,13 @@ function syncRhythmUI(ri) {
   u.dev.style.setProperty("--vc", vc(v.inst));
   [...u.plays.children].forEach((b, ii) => b.classList.toggle("on", ii === v.inst));
   u.playsName.textContent = ins.type === "sample" && ins.sample ? sampleLabel(ins) : ins.type;
-  u.mB.classList.toggle("on", v.mute);
-  u.sB.classList.toggle("on", v.solo);
+  u.mB.classList.toggle("on", v.mute); u.mB2.classList.toggle("on", v.mute);
+  u.sB.classList.toggle("on", v.solo); u.sB2.classList.toggle("on", v.solo);
+  u.miniName.textContent = u.playsName.textContent;
+  const mods = modList(ri);
+  u.mods.textContent = mods.length ? mods.join(" · ") : "nothing else changed";
+  u.mods.title = mods.length ? "Changed: " + mods.join(", ") + ". Click to open." : "Nothing else changed. Click to open.";
+  u.mods.classList.toggle("on", mods.length > 0);
   u.dev.classList.toggle("muted", !audible(v));
   u.readout.textContent = `${c.hits}/${v.steps} · ${v.mode === "barlow" ? v.factors.join("·") : "euclid"}${v.lock !== "free" ? " · " + v.lock : ""}${v.length ? ` · ${v.length} beats` : ""}`;
   u.controls.forEach(x => x.update());
@@ -1815,6 +1885,7 @@ function buildRack() {
   for (let ii = 0; ii < n; ii++) $("instGrid").append(buildInstrument(ii));
   for (let ri = 0; ri < n; ri++) $("rhythms").append(buildRhythm(ri));
   buildPatch();
+  syncFoldAll();
   instDirty = true;
 }
 
@@ -1862,6 +1933,7 @@ function buildGlobal() {
   $("undo").onclick = () => undoRedo(-1);
   $("redo").onclick = () => undoRedo(1);
   $("mutateAll").onclick = () => S.rhythms.forEach((_, ri) => mutate(ri));
+  $("foldAll").onclick = () => { const on = !S.rhythms.every((_, ri) => folded[ri]); S.rhythms.forEach((_, ri) => setFolded(ri, on)); };
   $("presets").onchange = e => {
     const v = e.target.value; if (!v) return;
     const name = v.slice(2);
@@ -2034,6 +2106,23 @@ function drawFan(ri, now) {
   g.fillText(`${r.c.hits}/${v.steps}`, cx, cy);
 }
 
+// The folded row's steps in a line: size is weight, filled is a hit, a bright ring is a flipped step.
+function drawStrip(ri, now) {
+  const v = S.rhythms[ri], r = RT[ri], c = r.c, cv = r.strip, g = cv.getContext("2d"), d = fit(cv);
+  const W = cv.width, H = cv.height, N = v.steps, cell = W / N, cy = H / 2, col = COLORS[v.inst];
+  const cur = playing ? mod(Math.floor(phaseOf(v, now) * N), N) : -1;
+  g.clearRect(0, 0, W, H);
+  g.strokeStyle = "rgba(236,235,230,0.12)"; g.lineWidth = d; g.beginPath(); g.moveTo(cell / 2, cy); g.lineTo(W - cell / 2, cy); g.stroke();
+  for (let i = 0; i < N; i++) {
+    const x = (i + 0.5) * cell, on = r.anim ? r.anim[i] : +c.active[i], rad = Math.min(cell * 0.42, (1.6 + 3.4 * c.w[i]) * d);
+    if (i === cur) { g.fillStyle = rgba(col, 0.3); g.beginPath(); g.arc(x, cy, rad + 4 * d, 0, TAU); g.fill(); }
+    g.beginPath(); g.arc(x, cy, rad, 0, TAU);
+    g.fillStyle = on > 0.5 ? col : SLATE; g.fill();
+    g.strokeStyle = v.ov[mod(i - v.rotation, N)] === "1" ? "rgba(236,235,230,0.95)" : "rgba(236,235,230,0.35)";
+    g.lineWidth = (v.ov[mod(i - v.rotation, N)] === "1" ? 1.5 : 1) * d; g.stroke();
+  }
+}
+
 // Barlow tree in chalk: curved branches per stratum, the branching factor beside each node,
 // leaves are the steps (filled = active, size = indispensability), rank numbers underneath.
 function drawTree(ri, now) {
@@ -2140,7 +2229,7 @@ function frame() {
     const r = RT[ri];
     if (r.dirty) { r.dirty = false; syncRhythmUI(ri); }
     animate(ri);
-    if (showRack) { drawFan(ri, now); drawTree(ri, now); }
+    if (showRack) { if (folded[ri]) drawStrip(ri, now); else { drawFan(ri, now); drawTree(ri, now); } }
   });
   if (vis) drawVisuals(now); else drawBloom(now);
   requestAnimationFrame(frame);
