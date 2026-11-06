@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarence Machine · Theory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#131312; --body:#191918; --panel:#1d1d1c; --well:#161615; --rule:#2a2a28; --rule2:#383835;
+  --ink:#ecebe6; --ink2:#bab9b3; --dim:#7a7974; --faint:#4b4a46;
+  --sans:"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --cap:500 9.5px/1 var(--sans);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:300 15px/1.7 var(--sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--ink);color:var(--bg)}
+a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule2)}
+a:hover{border-bottom-color:var(--ink2)}
+
+.top a{white-space:nowrap}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 28px;background:var(--body);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:2}
+.brand{font:500 11px/1 var(--sans);letter-spacing:.42em;text-transform:uppercase;color:var(--ink);border:0}
+.btn{border:1px solid var(--rule2);border-radius:2px;padding:6px 11px;font:var(--cap);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+.btn:hover{color:var(--ink);border-color:var(--dim)}
+
+.page{display:grid;grid-template-columns:200px minmax(0,720px);gap:56px;justify-content:center;padding:56px 28px 120px}
+nav.toc{position:sticky;top:96px;align-self:start;font:400 12px/2 var(--sans)}
+nav.toc h6{margin:0 0 6px;font:var(--cap);letter-spacing:.24em;text-transform:uppercase;color:var(--faint)}
+nav.toc a{display:block;border:0;color:var(--dim)}
+nav.toc a:hover{color:var(--ink)}
+nav.toc .n{font:400 10px var(--mono);color:var(--faint);margin-right:8px}
+
+main{min-width:0}
+h1{font:300 34px/1.15 var(--sans);letter-spacing:-.01em;margin:0 0 18px}
+.lede{color:var(--ink2);font-size:17px;margin:0 0 40px}
+section{padding-top:28px;margin-top:28px;border-top:1px solid var(--rule)}
+h2{font:500 11px/1 var(--sans);letter-spacing:.32em;text-transform:uppercase;color:var(--ink2);margin:0 0 22px;display:flex;gap:14px;align-items:baseline}
+h2 .n{font:400 11px var(--mono);letter-spacing:0;color:var(--faint)}
+h3{font:400 16px/1.3 var(--sans);margin:30px 0 8px;color:var(--ink)}
+p{margin:0 0 14px;color:var(--ink2)}
+p b,li b{color:var(--ink);font-weight:400}
+ul{margin:0 0 14px;padding-left:18px;color:var(--ink2)}
+li{margin:0 0 6px}
+code,.mono{font:400 13px var(--mono);color:var(--ink)}
+.ranks{font:400 14px var(--mono);color:var(--ink);letter-spacing:.04em}
+.ctl{font:var(--cap);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);border:1px solid var(--rule2);border-radius:2px;padding:2px 5px;white-space:nowrap}
+
+.key{margin:0 0 48px;padding:20px 22px 8px;background:var(--panel);border:1px solid var(--rule);border-radius:3px}
+.key > p{margin:18px 0 8px;font:var(--cap);letter-spacing:.24em;text-transform:uppercase;color:var(--faint)}
+.key > p:first-child{margin-top:0;font:500 11px/1 var(--sans);letter-spacing:.32em;color:var(--ink2)}
+.key > p b{color:inherit;font-weight:inherit}
+.key ul{list-style:none;padding:0;columns:2;column-gap:32px;font-size:13px;line-height:1.55}
+.key li{break-inside:avoid;margin:0 0 7px}
+figure{margin:26px 0 30px;padding:18px 18px 14px;background:var(--panel);border:1px solid var(--rule);border-radius:3px}
+.figs{display:grid;gap:14px;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr))}
+.cell{min-width:0;text-align:center}
+.cell canvas{width:100%;display:block}
+.cell .lab{font:400 11px/1.4 var(--mono);color:var(--dim);margin-top:6px}
+.cell .lab code{font-size:inherit;color:var(--ink2)}
+.cell img{max-width:100%;display:block;margin:0 auto}
+canvas.flower{aspect-ratio:1}
+canvas.tree{height:120px}
+canvas.strip{height:var(--h,120px)}
+img.print{display:none}
+figcaption{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);font:300 12.5px/1.6 var(--sans);color:var(--dim)}
+figcaption b{color:var(--ink2);font-weight:500}
+
+#further-reading li{font-size:13.5px}
+footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
+
+@media (max-width:900px){
+  .key ul{columns:1}
+  .page{grid-template-columns:minmax(0,1fr);gap:0;padding:32px 16px 80px}
+  nav.toc{display:none}
+  .figs{grid-template-columns:repeat(var(--mcols,2),minmax(0,1fr))}
+  h1{font-size:28px}
+  .top{padding:14px 16px}
+  .brand{letter-spacing:.28em}
+}
+/* print: ink on paper, figures stay as dark panels */
+@media print{
+  @page{size:A4;margin:16mm 15mm}
+  html,body{background:#fff;color:#111;font-size:10.5pt;line-height:1.55}
+  .top,nav.toc{display:none}
+  .page{display:block;padding:0}
+  h1{color:#111;font-size:24pt}
+  .lede,p,ul{color:#333}
+  p b,li b,code,.mono,.ranks{color:#111}
+  h2{color:#444} h2 .n{color:#999} h3{color:#111}
+  section{border-top-color:#ddd}
+  .ctl{color:#111;border-color:#aaa}
+  a{color:#111;border:0}
+  .key{background:#fff;border-color:#ccc}
+  .key > p{color:#888} .key > p:first-child{color:#444}
+  figure,figure *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  figure{break-inside:avoid}
+  .cell canvas{display:none}
+  figure img.print{display:block;width:100%;height:auto}
+  .figs{grid-template-columns:repeat(var(--cols,3),minmax(0,1fr))}
+  .key ul{columns:2}
+  figure p,figcaption b{color:var(--ink2)}
+  h2,h3{break-after:avoid}
+  li,.key li{break-inside:avoid}
+  footer{color:#999}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html">Clarence Machine</a>
+  <a class="btn" href="index.html">Back to the machine</a>
+</header>
+
+<div class="page">
+<nav class="toc">
+  <h6>Contents</h6>
+<!-- toc -->
+  <a href="#clarence-barlow"><span class="n">01</span>Clarence Barlow</a>
+  <a href="#dividing-a-cycle"><span class="n">02</span>Dividing a cycle</a>
+  <a href="#indispensability"><span class="n">03</span>Indispensability</a>
+  <a href="#trees-and-flowers"><span class="n">04</span>Trees and flowers</a>
+  <a href="#cycles-and-time"><span class="n">05</span>Cycles and time</a>
+  <a href="#pattern"><span class="n">06</span>Pattern</a>
+  <a href="#feel"><span class="n">07</span>Feel</a>
+  <a href="#motion"><span class="n">08</span>Motion</a>
+  <a href="#sound-from-weight"><span class="n">09</span>Sound from weight</a>
+<!-- /toc -->
+</nav>
+
+<main>
+<!-- Generated from theory/about.md by theory/build.mjs. Edit the markdown, not this. -->
+<!-- content -->
+<aside class="key">
+<p><b>TL;DR key</b></p>
+<p><b>The theory</b></p>
+<ul>
+  <li><b>Indispensability</b> is Barlow's ranking of every pulse in a meter by how much the meter needs it to stay recognizable.</li>
+  <li><b>Cycle</b> is one full pass of a rhythm, a loop of equal steps that repeats.</li>
+  <li><b>Step</b> is one slot in a cycle that can trigger or stay silent.</li>
+  <li><b>Strata</b> are the layers of prime divisions that build a meter, so <code>2·2·3</code> is three strata.</li>
+  <li><b>Rank</b> is a step's place in the indispensability order, from N−1 for the downbeat down to 0.</li>
+  <li><b>Weight</b> is a step's rank scaled between 0 and 1.</li>
+</ul>
+<p><b>Drawings</b></p>
+<ul>
+  <li><b>Tree</b> shows the meter as branches, with the whole cycle at the root and the steps as leaves sized by weight.</li>
+  <li><b>Flower</b> wraps the cycle into a circle where each petal is a step and its length is the step's weight.</li>
+  <li><b>Bloom</b> stacks every rhythm's flower as rings so you can see where they line up.</li>
+</ul>
+<p><b>Time</b></p>
+<ul>
+  <li><span class="ctl">Tempo</span> sets beats per minute.</li>
+  <li><span class="ctl">Cycle</span> sets how many beats make one bar.</li>
+  <li><b>Length</b> is one rhythm's own cycle in beats, which can differ from the bar and needn't be whole.</li>
+  <li><b>Grid</b> is steps per beat, so steps equal length times grid.</li>
+  <li><b>Steps</b> sets the step count directly, and the meter then comes from its prime factors.</li>
+  <li><b>Polymeter</b> is rhythms of different lengths drifting apart and realigning at their least common multiple.</li>
+</ul>
+<p><b>Pattern</b></p>
+<ul>
+  <li><span class="ctl">Density</span> sets how many steps play, turning them on strongest first.</li>
+  <li><span class="ctl">Mode</span> chooses hits by rank in Barlow mode or spreads them evenly in Euclid mode.</li>
+  <li><span class="ctl">Rotation</span> slides the hits around the cycle while the meter stays put.</li>
+  <li><span class="ctl">Lock</span> makes a rhythm avoid or join the hits of the same-length rhythms above it.</li>
+  <li><span class="ctl">Energy</span> pushes every rhythm's density up or down at once.</li>
+  <li><span class="ctl">Fill</span> adds more hits while held.</li>
+</ul>
+<p><b>Feel</b></p>
+<ul>
+  <li><span class="ctl">Accent</span> sets how much weight decides velocity, from flat to the downbeat at full and the weakest step at 20%.</li>
+  <li><span class="ctl">Chance</span> is the probability that any hit plays on a given pass.</li>
+  <li><span class="ctl">Weak drop</span> makes low-weight steps skip more often than strong ones.</li>
+  <li><span class="ctl">Ghost</span> gives empty steps a chance of a very quiet hit, louder on stronger steps.</li>
+  <li><span class="ctl">Swing</span> delays every second step, up to half a step.</li>
+  <li><span class="ctl">Jitter</span> moves each hit early or late by a random few milliseconds.</li>
+  <li><span class="ctl">Vel jitter</span> randomly varies each hit's velocity.</li>
+</ul>
+<p><b>Motion</b></p>
+<ul>
+  <li><b>Ratchet</b> splits one hit into several faster, quieter repeats inside its step.</li>
+  <li><span class="ctl">Ratchet chance</span> sets how often a ratchet happens, more often on weak steps.</li>
+  <li><span class="ctl">Spin</span> rotates the pattern by a few steps at the end of every cycle.</li>
+  <li><span class="ctl">Drift</span> nudges a rhythm's density, rotation or strata every few cycles.</li>
+  <li><span class="ctl">Drift steps</span> lets drift also change a rhythm's grid or step count.</li>
+  <li><span class="ctl">Drift every</span> sets how many cycles pass between drift moves.</li>
+  <li><span class="ctl">Mutate</span> does all of drift at once, with new strata, density, rotation and sometimes mode or lock.</li>
+</ul>
+<p><b>Sound</b></p>
+<ul>
+  <li><b>Strokes</b> make conga, bongo and hat play open on strong steps, muted on middle steps and slapped on weak ones.</li>
+  <li><b>Pitch from weight</b> moves the note away from the root as weight drops, snapped to a scale.</li>
+</ul>
+</aside>
+<h1>a drum machine with a particular theory of time</h1>
+<p class="lede">"Clarence" uses a particular conception of how time should be divided, how rhythm is felt, how to conceive of and modulate between divisions of a cycle. In any given meter, some pulses will matter more than others. Clarence Barlow derived a methodology for arriving at any given meter's hierarchy of beats. This doc hopes to explain the ranking system known as "Indispensibilty", where it comes from, and how each parameter controls variation in the resulting rhythmic patterns.</p>
+<figure>
+  <div class="figs" style="--cols:1;--mcols:1">
+    <div class="cell"><canvas class="flower" style="max-width:420px;margin:0 auto" data-name="intro-1.png" data-fig='{"type":"bloom","rings":[{"steps":16,"density":0.25},{"steps":16,"pattern":"x..x..x...x.x..."},{"steps":12,"factors":[2,2,3],"density":0.42,"rotation":1},{"steps":8,"density":0.5,"rotation":2}]}'></canvas></div>
+  </div>
+  <figcaption><b>The Bloom, a Radial Chart Interface to Rhythmic Exploration.</b> Each ring represents a unique rhythm, one entire cycle read clockwise from the top. Petal length is proportional to the step's metric weight, and a filled in petal is a trigger for sounding.</figcaption>
+</figure>
+
+<section id="clarence-barlow">
+<h2><span class="n">01</span>Clarence Barlow</h2>
+<p>Clarence Barlow was an influential composer and theorist in the world academic electronic music. Prolific teacher, he had great influence over the California computer music scene—Berkeley, Stanford, UCSC, UCSD.</p>
+<p>While composing rule-based music, Barlow began deriving rules around musical instinct. His first innovation here was a scoring mechanism for <i>how consonant is a harmonic interval</i>. While there's probably something to build here too, I was more interested in his second innovation:  <b>indispensability</b> or the measurement/ranking of every pulse within a meter—how much does the meter need that pulse to stay recognizable. At the extreme, the downbeat is all that's needed to punctuate the cycle of time. In more complex meters, such as 5/4, the measure can be divided into 2:3 or 3:2, each influences which pulses are indispensable to our perception of that meter. Barlow originally published the method in "Two Essays on Theory" in <i>Computer Music Journal</i> in 1987.</p>
+<p>This browser-based rhythm toy is based on that one formula, the circular layout is a nod to the "time is flat circle" meme.</p>
+</section>
+
+<section id="dividing-a-cycle">
+<h2><span class="n">02</span>Dividing a cycle</h2>
+<p>A rhythm in the machine is a <b>cycle</b> of equal <b>steps</b> that repeats. Cycles can be divided in many different ways. Twelve steps can be heard as three groups of four, four groups of three, or two groups of six that each split again. Barlow describes this as a stack of division, but is also just prime factoring. The layers are called <b>strata</b>.</p>
+<p>Twelve can be written as 2·2·3—three strata. The order of the primes describes the meter. <code>2·2·3</code> divides the cycle in half, each half in half again, and each quarter into three. That's four beats of triplets, a 12/8 feel. <code>3·2·2</code> divides the cycle into three beats of four sixteenths—a very different <i>feeling</i> rhythm.</p>
+<figure>
+  <div class="figs" style="--cols:3;--mcols:2">
+    <div class="cell"><canvas class="tree" data-name="dividing-a-cycle-1a.png" data-fig='{"type":"tree","steps":12,"factors":[2,2,3],"density":0}'></canvas><div class="lab">2 · 2 · 3</div></div>
+    <div class="cell"><canvas class="tree" data-name="dividing-a-cycle-1b.png" data-fig='{"type":"tree","steps":12,"factors":[2,3,2],"density":0}'></canvas><div class="lab">2 · 3 · 2</div></div>
+    <div class="cell"><canvas class="tree" data-name="dividing-a-cycle-1c.png" data-fig='{"type":"tree","steps":12,"factors":[3,2,2],"density":0}'></canvas><div class="lab">3 · 2 · 2</div></div>
+  </div>
+  <figcaption><b>three different meters of the twelve beat cycle</b>. The leaves are the twelve steps, sized by weight and ranked beneath. The order of the strata <i>changes which steps are strong</i>. The biggest number is the strongest.</figcaption>
+</figure>
+<p>The machine picks the strata for you from <span class="ctl">Cycle</span> and <span class="ctl">Grid</span>. The beats of the cycle are the top strata, and the grid, which is steps per beat, divides each beat below them. Four beats on a grid of 4 gives <code>2·2·2·2</code>. Four beats on a grid of 3 gives <code>2·2·3</code>. You can reorder the primes, manually enabling variation, but also <span class="ctl">Drift</span> (a form of rhythm-specific randomness offered) will sometimes reorders them for you.</p>
+<h3>Primes larger than three</h3>
+<p>Barlow gave fixed rankings for 2 and 3. A larger prime is first broken into groups of two with one three at the end, so 5 becomes 2+3 and 7 becomes 2+2+3, and those groups are ranked with the same method. This is why a cycle of five steps feels like a short-long pair and seven feels like short-short-long.</p>
+<figure>
+  <div class="figs" style="--cols:3;--mcols:3">
+    <div class="cell"><canvas class="flower" data-name="dividing-a-cycle-2a.png" data-fig='{"type":"flower","steps":5,"density":0,"labels":true}'></canvas><div class="lab">5 = 2+3 · <code>4 0 3 1 2</code></div></div>
+    <div class="cell"><canvas class="flower" data-name="dividing-a-cycle-2b.png" data-fig='{"type":"flower","steps":7,"density":0,"labels":true}'></canvas><div class="lab">7 = 2+2+3 · <code>6 0 4 1 5 2 3</code></div></div>
+    <div class="cell"><canvas class="flower" data-name="dividing-a-cycle-2c.png" data-fig='{"type":"flower","steps":10,"factors":[5,2],"density":0,"labels":true}'></canvas><div class="lab">5 · 2</div></div>
+  </div>
+  <figcaption><b>Odd meter examples</b> Petal length shows each step's weight. The number is its indispensability rank. Note: the downbeat is always the highest rank.</figcaption>
+</figure>
+</section>
+
+<section id="indispensability">
+<h2><span class="n">03</span>Indispensability</h2>
+<p>Every step in a cycle of N steps gets a unique rank, from N−1 for the most indispensable down to 0. The downbeat always ranks highest. The rest follows from two rules applied one stratum at a time.</p>
+<ul>
+  <li><b>Coarse pulses keep their order.</b> When a stratum is added, the pulses that already existed stay above all the new ones, in the same order as before.</li>
+  <li><b>New pulses rank by where they sit and what comes next.</b> A new pulse first ranks by its position inside its group, using the small table for that prime. Ties go to the pulse that leads into the stronger coarse pulse.</li>
+</ul>
+<p>For two pulses the table is <code>1 0</code>, so the downbeat beats the offbeat. For three it is <code>2 0 1</code>. The third pulse outranks the second because it leads into the next downbeat. That pull toward the next strong pulse is the heart of Barlow's idea, and it's a small rule that does a lot of work. It explains why the last eighth of a bar of four sounds like it belongs to the next bar.</p>
+<p>Four beats as <code>2·2</code> ranks <code>3 0 2 1</code>. Beat one comes first, then beat three, then beat four because it leads into beat one, and beat two comes last. Sixteen steps as <code>2·2·2·2</code> ranks:</p>
+<p class="ranks">15 0 8 4 12 2 10 6 14 1 9 5 13 3 11 7</p>
+<figure>
+  <div class="figs" style="--cols:1;--mcols:1">
+    <div class="cell"><canvas class="tree" style="height:150px" data-name="indispensability-1.png" data-fig='{"type":"tree","steps":16,"factors":[2,2,2,2],"density":0}'></canvas></div>
+  </div>
+  <figcaption><b>Sixteen steps, four strata of two.</b> The quarter notes carry the top four ranks, the eighths the next four, and the sixteenths the rest. Within each layer, the pulse that leads into a stronger one comes first.</figcaption>
+</figure>
+<p>The machine scales each rank to a <b>weight</b> between 0 and 1. Weight is the one number that most of the controls below read.</p>
+</section>
+
+<section id="trees-and-flowers">
+<h2><span class="n">04</span>Trees and flowers</h2>
+<p>A rhythm can be draw 2 ways, as a Flower or Tree (flower is a nice name for a radial diagram).</p>
+<p>The <b>tree</b> is displayed under each rhythm, showing the hierarchies of the meter. The root is the whole cycle, each branch point is a stratum, and the leaves are the steps, left to right in time. Leaf size is weight, a filled leaf trigger, and clicking a leaf manually toggles it on.</p>
+<p>The <b>flower</b> is the same cycle wrapped into a circle, starting at the top and running clockwise. Each petal is a step and its length is the step's weight, so the shape of the empty flower is the meter itself. Filled petals play. Brightness is velocity (~loudness). A petal filled only partway plays only some of the time (representing chance as a subset of the whole). The Bloom stacks every rhythm's flower as rings so you can see where they line up.</p>
+<figure>
+  <div class="figs" style="--cols:2;--mcols:2">
+    <div class="cell"><canvas class="tree" style="height:150px" data-name="trees-and-flowers-1a.png" data-fig='{"type":"tree","steps":12,"factors":[3,2,2],"density":0.42}'></canvas><div class="lab">tree</div></div>
+    <div class="cell"><canvas class="flower" style="max-width:220px;margin:0 auto" data-name="trees-and-flowers-1b.png" data-fig='{"type":"flower","steps":12,"factors":[3,2,2],"density":0.42,"labels":true}'></canvas><div class="lab">flower</div></div>
+  </div>
+  <figcaption><b>The same rhythm</b> Twelve steps as 3·2·2 with five hits (5 out of 12 <i>density</i>). The five strongest steps play, and in the flower they are the five longest petals.</figcaption>
+</figure>
+</section>
+
+<section id="cycles-and-time">
+<h2><span class="n">05</span>Cycles and time</h2>
+<p>The clock counts <b>beats</b>. <span class="ctl">Tempo</span> sets beats per minute and <span class="ctl">Cycle</span> sets how many beats make one bar. Each rhythm then has three numbers of its own.</p>
+<ul>
+  <li><b>Length</b> is the rhythm's cycle in beats. "Global" follows <span class="ctl">Cycle</span>. Any other value adjusts the rest locally to the particular rhythm.</li>
+  <li><b>Grid</b> is steps per beat. Steps = length × grid. The beat count is the numerator of the meter.</li>
+  <li><b>Steps</b> can also be set directly, deriving the rhythm from there. Its steps spread evenly over its length and the meter comes from the prime factors of the step count.</li>
+</ul>
+<h3>Polymeter</h3>
+<p>When two rhythms have different lengths they drift against each other and line up again after the least common multiple of the two. A 3-beat rhythm against a 4-beat bar meets the bar again every 12 beats. A 6-beat bongo against a 2-beat conga meets every 6. A length of 8 against 4 gives half time.</p>
+<figure>
+  <div class="figs" style="--cols:1;--mcols:1">
+    <div class="cell"><canvas class="strip" style="--h:130px" data-name="cycles-and-time-1.png" data-fig='{"type":"strip","beats":12,"rows":[{"label":"4 beats","length":4,"steps":16,"density":0.25},{"label":"3 beats","length":3,"steps":12,"factors":[3,2,2],"density":0.34}]}'></canvas></div>
+  </div>
+  <figcaption><b>Three against four.</b> Twelve beats of time. The top rhythm repeats every 4 beats and the lower one every 3. The hairlines mark where each cycle starts. They only meet at the start, so the combined pattern is 12 beats long. The 4th beat of the 3-length cycle is the "pickup" to the cycle, derived from the indispensability weighting of the possible other 4th beats.</figcaption>
+</figure>
+<h3>But not all Lengths are whole...</h3>
+<p>Lengths don't need to be whole numbers. A 2½-beat shaker against a five-beat bar plays twice per bar, and a 2½-beat shaker against four beats takes five bars to arrive at the top together. Each rhythm keeps its own meter independent from all other rhythms.</p>
+</section>
+
+<section id="pattern">
+<h2><span class="n">06</span>Pattern</h2>
+<h3>Density</h3>
+<p><span class="ctl">Density</span> sets how many steps play. In Barlow mode the machine turns steps on in rank order, so one knob gives a family of patterns where each denser one contains every sparser one. At low density you hear only the downbeats. As you turn it up, the beats arrive, then the offbeats, then the pickups, which is roughly the order a drummer adds notes when building up. Density is the main control for any rhythm.</p>
+<figure>
+  <div class="figs" style="--cols:4;--mcols:4">
+    <div class="cell"><canvas class="flower" data-name="pattern-1a.png" data-fig='{"type":"flower","steps":16,"density":0.125}'></canvas><div class="lab">2 / 16</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-1b.png" data-fig='{"type":"flower","steps":16,"density":0.25}'></canvas><div class="lab">4 / 16</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-1c.png" data-fig='{"type":"flower","steps":16,"density":0.375}'></canvas><div class="lab">6 / 16</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-1d.png" data-fig='{"type":"flower","steps":16,"density":0.5}'></canvas><div class="lab">8 / 16</div></div>
+  </div>
+  <figcaption><b>Density in Barlow mode.</b> Each additional value to the pattern adds the next strongest steps. <span class="ctl">Energy</span> in the header pushes <i>every</i> rhythm's density up or down at once, and <span class="ctl">Fill</span> adds more while held.</figcaption>
+</figure>
+<h3>Barlow and Euclid</h3>
+<p><span class="ctl">Mode</span> picks how the hits are chosen. Barlow takes the strongest steps. Euclid spreads the same number of hits <i>as evenly as possible</i> over the cycle, which gives produces many traditional bell and clave patterns. Five hits in sixteen, for example, is four beats plus a pickup in Barlow mode and gaps of 4-3-3-3-3 in Euclid mode. Euclid <b>ignores</b> the meter when selecting steps, but the meter still sets the loudness/velocity of each hit.</p>
+<figure>
+  <div class="figs" style="--cols:4;--mcols:4">
+    <div class="cell"><canvas class="flower" data-name="pattern-2a.png" data-fig='{"type":"flower","steps":16,"density":0.3125}'></canvas><div class="lab">Barlow 5/16</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-2b.png" data-fig='{"type":"flower","steps":16,"density":0.3125,"mode":"euclid"}'></canvas><div class="lab">Euclid 5/16</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-2c.png" data-fig='{"type":"flower","steps":12,"factors":[2,2,3],"density":0.5833}'></canvas><div class="lab">Barlow 7/12</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-2d.png" data-fig='{"type":"flower","steps":12,"factors":[2,2,3],"density":0.5833,"mode":"euclid"}'></canvas><div class="lab">Euclid 7/12</div></div>
+  </div>
+  <figcaption><b>Modes of a feather</b> Left is Barlow, Right is Euclid. Euclid 7 in 12 is a rotation of the West African bell pattern used in bembé. Barlow 7 in 12 plays the four beats and the triplet notes that lead into three of them.</figcaption>
+</figure>
+<h3>Rotation</h3>
+<p><span class="ctl">Rotation</span> shifts the pattern around the cycle but <i>the meter does not move</i>. The petals keep their lengths, so a hit that was on a strong step lands on a weak one and gets quieter. Rotating a pattern changes both where its hits fall in the cycle and how they are accented.</p>
+<figure>
+  <div class="figs" style="--cols:4;--mcols:4">
+    <div class="cell"><canvas class="flower" data-name="pattern-3a.png" data-fig='{"type":"flower","steps":16,"density":0.3125,"rotation":0}'></canvas><div class="lab">rotation 0</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-3b.png" data-fig='{"type":"flower","steps":16,"density":0.3125,"rotation":1}'></canvas><div class="lab">rotation 1</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-3c.png" data-fig='{"type":"flower","steps":16,"density":0.3125,"rotation":2}'></canvas><div class="lab">rotation 2</div></div>
+    <div class="cell"><canvas class="flower" data-name="pattern-3d.png" data-fig='{"type":"flower","steps":16,"density":0.3125,"rotation":3}'></canvas><div class="lab">rotation 3</div></div>
+  </div>
+  <figcaption><b>Rotating a pattern over a fixed meter.</b> While the fills move, the pedals stay the same length. Brightness stays a function of pedal weight.</figcaption>
+</figure>
+<h3>Lock</h3>
+<p><span class="ctl">Lock</span> relates a rhythm to the ones above it in the rack. <b>Avoid</b> pushes steps where earlier rhythms already hit to the bottom of the ranking, so the rhythm fills the gaps and the parts interlock. <b>Join</b> pulls those steps to the top, so the rhythm doubles what is already there. Lock only compares rhythms with the same length.</p>
+<figure>
+  <div class="figs" style="--cols:1;--mcols:1">
+    <div class="cell"><canvas class="strip" style="--h:170px" data-name="pattern-4.png" data-fig='{"type":"strip","beats":4,"rows":[{"label":"kick","steps":16,"density":0.25},{"label":"free","steps":16,"density":0.25},{"label":"avoid","steps":16,"density":0.25,"lock":"avoid"},{"label":"join","steps":16,"density":0.375,"lock":"join"}]}'></canvas></div>
+  </div>
+  <figcaption><b>Lock against a kick.</b> With lock off, a second rhythm at the same density lands on the kick. Avoid moves it to <i>the next strongest free steps</i>. Join increases the higher density, adding to the kicks steps.</figcaption>
+</figure>
+<h3>Writing steps by hand</h3>
+<p>Click a petal or leaf to flip one step. The machine stores your edits relative to the pattern, so they rotate and spin with it, and density follows the number of hits you leave but doesn't override your pattern placement.</p>
+</section>
+
+<section id="feel">
+<h2><span class="n">07</span>Feel</h2>
+<p>A pattern determines <i>which steps play</i>. Feel is a function of <i>how they play</i>. Almost all of the controls read a step's weight, so the meter shape has disproportionate impact on the performance of the pattern.</p>
+<h3>Accent</h3>
+<p><span class="ctl">Accent</span> sets how much weight decides loudness. At 0 every hit is equally loud. At 100% the downbeat is at full volume and the weakest step plays at 20%. This is what "humanizes" the pattern.</p>
+<figure>
+  <div class="figs" style="--cols:3;--mcols:3">
+    <div class="cell"><canvas class="flower" data-name="feel-1a.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":0}'></canvas><div class="lab">accent 0</div></div>
+    <div class="cell"><canvas class="flower" data-name="feel-1b.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":0.5}'></canvas><div class="lab">accent 50%</div></div>
+    <div class="cell"><canvas class="flower" data-name="feel-1c.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":1}'></canvas><div class="lab">accent 100%</div></div>
+  </div>
+  <figcaption><b>Accent.</b> Fill brightness is loudness/velocity.</figcaption>
+</figure>
+<h3>Chance and weak drop</h3>
+<p><span class="ctl">Chance</span> is the probability that a hit plays on any given pass. <span class="ctl">Weak drop</span> makes that probability depend on weight in particular, skipping lower priority/weighted notes instead of the downbeat (statistically). Playing with both of these parameters prevents a dense pattern from sounding like a loop (subtle variations throughout the cycles). In the flower, a petal filled partway represents the statistical likelihood of how often that step plays.</p>
+<figure>
+  <div class="figs" style="--cols:3;--mcols:3">
+    <div class="cell"><canvas class="flower" data-name="feel-2a.png" data-fig='{"type":"flower","steps":16,"density":0.75}'></canvas><div class="lab">always</div></div>
+    <div class="cell"><canvas class="flower" data-name="feel-2b.png" data-fig='{"type":"flower","steps":16,"density":0.75,"chance":0.7}'></canvas><div class="lab">chance 70%</div></div>
+    <div class="cell"><canvas class="flower" data-name="feel-2c.png" data-fig='{"type":"flower","steps":16,"density":0.75,"weakDrop":0.8}'></canvas><div class="lab">weak drop 80%</div></div>
+  </div>
+  <figcaption><b>Probability as fill.</b> Chance shortens every fill equally, likelihood across the whole. Weak drop decreases probability of the lower ranked pedals in inverse proportionality.</figcaption>
+</figure>
+<h3>Ghost notes</h3>
+<p><span class="ctl">Ghost</span> gives every empty step a chance of a very quiet hit. Ghost notes are the soft strokes between the main ones that make a groove feel alive. Traditionally, hand drums play them as heel strokes. The flower shows them as short stubs in the empty petals. The weight of the pedal proportionally controls the volume of the ghost note, keeping with the underlying accent/emphasis schema.</p>
+<h3>Swing and jitter</h3>
+<p><span class="ctl">Swing</span> delays every second step, up to half a step. A small amount loosens straight sixteenths. Two thirds is a triplet shuffle and 100% is a dotted rhythm.</p>
+<p><span class="ctl">Jitter</span> moves each hit early or late by a <i>random</i> few milliseconds. <span class="ctl">Vel jitter</span> (velocity jitter) does the same for loudness.</p>
+<figure>
+  <div class="figs" style="--cols:3;--mcols:3">
+    <div class="cell"><canvas class="flower" data-name="feel-3a.png" data-fig='{"type":"flower","steps":16,"density":0.5,"ghost":0.6}'></canvas><div class="lab">ghost 60%</div></div>
+    <div class="cell"><canvas class="flower" data-name="feel-3b.png" data-fig='{"type":"flower","steps":16,"density":0.75,"swing":0.6}'></canvas><div class="lab">swing 60%</div></div>
+    <div class="cell"><canvas class="strip" style="--h:150px" data-name="feel-3c.png" data-fig='{"type":"strip","beats":1,"rows":[{"label":"straight","steps":4,"density":1,"length":1},{"label":"swing","steps":4,"density":1,"length":1,"swing":0.6},{"label":"jitter","steps":4,"density":1,"length":1,"jitter":0.18}]}'></canvas><div class="lab">one beat</div></div>
+  </div>
+  <figcaption><b>Ghosts and timing.</b> Ghost notes appear as stubs in empty petals. Swing pushes every second petal clockwise. The strip zooms in on one beat of sixteenths.</figcaption>
+</figure>
+</section>
+
+<section id="motion">
+<h2><span class="n">08</span>Motion</h2>
+<p>Motion controls change the rhythm while it plays, either inside a step or from one cycle to the next.</p>
+<h3>Ratchet</h3>
+<p>A <b>ratchet</b> splits one hit into several faster ones inside its step, each quieter than the last, creating a microrhythm. A ratchet is a new stratum of division that shows up for single step.  <span class="ctl">Ratchet chance</span> sets how often it happens, and <i>weak steps ratchet more than strong ones</i>, so rolls tend to lead into strong beats instead of undermining them.  <span class="ctl">Ratchet</span> sets how many repeats. 2 doubles the step and 3 turns it into a triplet.</p>
+<figure>
+  <div class="figs" style="--cols:2;--mcols:1">
+    <div class="cell"><canvas class="flower" style="max-width:220px;margin:0 auto" data-name="motion-1a.png" data-fig='{"type":"flower","steps":16,"density":0.5,"ratchets":{"2":2,"10":3,"14":3}}'></canvas><div class="lab">ratchets on three steps</div></div>
+    <div class="cell"><canvas class="strip" style="--h:120px" data-name="motion-1b.png" data-fig='{"type":"strip","beats":4,"rows":[{"label":"plain","steps":16,"density":0.5},{"label":"ratchet","steps":16,"density":0.5,"ratchets":{"2":2,"10":3,"14":3}}]}'></canvas><div class="lab">the same bar in time</div></div>
+  </div>
+  <figcaption><b>Ratchets.</b>  Each ratchet repeat is shorter and quieter than the one before.</figcaption>
+</figure>
+<h3>Spin</h3>
+<p><span class="ctl">Spin</span> rotates the pattern by a few steps at the end of every cycle. A pattern that spins moves through all its rotations and comes back, passing over different accents each time. Placing a spinning copy against the original produces Steve Reich-style <i>phasing</i>.</p>
+<p>The Phase preset does this with the figure from <i>Clapping Music</i>.</p>
+<figure>
+  <div class="figs" style="--cols:1;--mcols:1">
+    <div class="cell"><canvas class="strip" style="--h:180px" data-name="motion-2.png" data-fig='{"type":"strip","beats":4,"rows":[{"label":"cycle 1","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx."},{"label":"cycle 2","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx.","rotation":1},{"label":"cycle 3","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx.","rotation":2},{"label":"cycle 4","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx.","rotation":3},{"label":"cycle 5","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx.","rotation":4}]}'></canvas></div>
+  </div>
+  <figcaption><b>Spin +1 for five cycles.</b> The Clapping Music figure moves one step later each cycle. The meter stays put, so the loudness of each hit changes as it moves.</figcaption>
+</figure>
+<h3>Drift</h3>
+<p><span class="ctl">Drift</span> lets a rhythm wander. Every few cycles it nudges density up or down, sometimes rotates a step, and sometimes reorders its strata.  With <span class="ctl">Drift steps</span> on it can also change its grid or step count. <span class="ctl">Drift every</span> in the global settings (header) sets how often drift occurs.</p>
+<figure>
+  <div class="figs" style="--cols:5;--mcols:5">
+    <div class="cell"><canvas class="flower" data-name="motion-3a.png" data-fig='{"type":"flower","steps":12,"factors":[2,2,3],"density":0.42}'></canvas><div class="lab">start</div></div>
+    <div class="cell"><canvas class="flower" data-name="motion-3b.png" data-fig='{"type":"flower","steps":12,"factors":[2,2,3],"density":0.5}'></canvas><div class="lab">denser</div></div>
+    <div class="cell"><canvas class="flower" data-name="motion-3c.png" data-fig='{"type":"flower","steps":12,"factors":[2,2,3],"density":0.5,"rotation":1}'></canvas><div class="lab">rotated</div></div>
+    <div class="cell"><canvas class="flower" data-name="motion-3d.png" data-fig='{"type":"flower","steps":12,"factors":[3,2,2],"density":0.5,"rotation":1}'></canvas><div class="lab">strata 3·2·2</div></div>
+    <div class="cell"><canvas class="flower" data-name="motion-3e.png" data-fig='{"type":"flower","steps":12,"factors":[3,2,2],"density":0.34,"rotation":1}'></canvas><div class="lab">sparser</div></div>
+  </div>
+  <figcaption><b>Four drift moves.</b> A single rhythm wandering over several drift points.</figcaption>
+</figure>
+<p><span class="ctl">Mutate</span> is all of drift at once. It picks new strata, density and rotation, and sometimes a new mode or lock. <kbd>M</kbd> mutates everything and <kbd>⇧Q</kbd>–<kbd>⇧I</kbd> mutates one rhythm in isolation (good for performance/play).</p>
+</section>
+
+<section id="sound-from-weight">
+<h2><span class="n">09</span>Sound from weight</h2>
+<p>Instruments are separate from rhythms. Any rhythm can play any instrument (see instrument rack at the bottom).</p>
+<p>Some instrument controls also read the weight of the step being played:</p>
+<ul>
+  <li><b>Strokes.</b> Conga, bongo and hat change how they're struck. Strong steps play open, middle steps muted and weak steps slapped, so one pattern gets the tonal range of a hand drummer.</li>
+  <li><b>Pitch from weight.</b> The pitch moves away from the base note as weight drops, snapped to a scale. Strong steps sit on the root while weak steps move away. Melody follows meter!</li>
+  <li><b>Pitch from velocity, step or chance.</b> Loudness, position in the cycle, or a random number, all drive the velocity mapping.</li>
+</ul>
+</section>
+<!-- /content -->
+</main>
+</div>
+
+<script>
+// ===== meter: the same functions as the machine =====
+const TAU = Math.PI * 2;
+const mod = (a, n) => ((a % n) + n) % n;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+function primeFactors(n) { const f = []; for (let d = 2; n > 1; d++) while (n % d === 0) { f.push(d); n /= d; } return f; }
+const basicCache = {};
+function basicPrime(p) {
+  if (basicCache[p]) return basicCache[p];
+  let r;
+  if (p === 1) r = [0];
+  else if (p === 2) r = [1, 0];
+  else if (p === 3) r = [2, 0, 1];
+  else { const g = (p - 1) / 2, sizes = Array(g).fill(2); sizes[g - 1] = 3; r = subdivide(meterRaw(primeFactors(g)), sizes); }
+  return (basicCache[p] = r);
+}
+function subdivide(coarse, sizes) {
+  const Nc = coarse.length, N = sizes.reduce((a, b) => a + b, 0), out = new Array(N), rest = [];
+  let pos = 0;
+  for (let m = 0; m < Nc; m++) {
+    const s = sizes[m], bp = basicPrime(s);
+    out[pos] = coarse[m] + (N - Nc);
+    for (let j = 1; j < s; j++) rest.push({ i: pos + j, a: bp[j], b: coarse[(m + 1) % Nc] });
+    pos += s;
+  }
+  rest.sort((x, y) => x.a - y.a || x.b - y.b || x.i - y.i);
+  rest.forEach((e, k) => (out[e.i] = k));
+  return out;
+}
+function meterRaw(factors) {
+  if (!factors.length) return [0];
+  let w = basicPrime(factors[0]).slice();
+  for (let L = 1; L < factors.length; L++) w = subdivide(w, Array(w.length).fill(factors[L]));
+  return w;
+}
+
+// a rhythm description → ranks, weights and which steps play (occ: steps taken by rhythms above)
+function rhythm(o, occ) {
+  const N = o.steps, factors = o.factors || primeFactors(N), raw = meterRaw(factors.length ? factors : [N]);
+  const w = raw.map(x => (N > 1 ? x / (N - 1) : 1)), rot = o.rotation || 0;
+  let active;
+  if (o.pattern) active = [...Array(N).keys()].map(i => o.pattern[mod(i - rot, N)] === "x");
+  else {
+    const k = Math.round((o.density ?? 0.4) * N), sign = o.lock === "avoid" ? -1 : o.lock === "join" ? 1 : 0;
+    if (o.mode === "euclid") active = [...Array(N).keys()].map(i => (mod(i - rot, N) * k) % N < k);
+    else {
+      const order = [...Array(N).keys()].map(i => ({ i, s: raw[mod(i - rot, N)] + sign * N * (occ && occ[i] ? 1 : 0) })).sort((a, b) => b.s - a.s);
+      active = new Array(N).fill(false);
+      for (let n = 0; n < k; n++) active[order[n].i] = true;
+    }
+  }
+  const acc = o.accent ?? 0.7, vel = w.map(x => (1 - acc) + acc * (0.2 + 0.8 * x));
+  const prob = w.map(x => clamp((o.chance ?? 1) * (1 - (o.weakDrop || 0) * (1 - x)), 0, 1));
+  return { N, factors, raw, w, active, vel, prob, rot };
+}
+
+// ===== drawing, in the machine's hairline style =====
+const INK = a => `rgba(236,235,230,${a})`, SLATE = "#1d1d1c";
+function fit(cv) {
+  const b = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1, w = Math.round(b.width * d), h = Math.round(b.height * d);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  return d;
+}
+function sector(g, cx, cy, r0, r1, a0, a1) { g.beginPath(); g.arc(cx, cy, r1, a0, a1); g.arc(cx, cy, r0, a1, a0, true); g.closePath(); }
+function line(g, d, a, w = 1) { g.lineJoin = "round"; g.lineCap = "round"; g.strokeStyle = INK(a); g.lineWidth = 1.1 * d * w; g.stroke(); }
+
+function petals(g, o, cx, cy, r0, r1, d, opts = {}) {
+  const R = rhythm(o, opts.occ), N = R.N, s = TAU / N, gap = Math.min(s * 0.08, 0.03), sw = o.swing || 0;
+  const start = i => (i + (i % 2 ? sw * 0.5 : 0)) * s - Math.PI / 2;
+  const tip = i => r0 + (r1 - r0) * (0.16 + 0.84 * R.w[i]);
+  for (let i = 0; i < N; i++) {
+    const a0 = start(i) + gap, a1 = start(i) + s - gap, rt = tip(i), on = R.active[i];
+    sector(g, cx, cy, r0, rt, a0, a1);
+    g.strokeStyle = INK(0.16); g.lineWidth = d; g.stroke();
+    if (!on && o.ghost) { sector(g, cx, cy, r0, r0 + (rt - r0) * o.ghost * 0.6, a0, a1); g.fillStyle = INK(0.22); g.fill(); }
+    if (on) {
+      sector(g, cx, cy, r0, r0 + (rt - r0) * R.prob[i], a0, a1);
+      g.fillStyle = INK(0.12 + 0.75 * R.vel[i]); g.fill();
+      sector(g, cx, cy, r0, rt, a0, a1); line(g, d, 0.92, 0.8);
+      const reps = o.ratchets && o.ratchets[i];
+      if (reps) for (let k = 1; k < reps; k++) {
+        const a = a0 + ((a1 - a0) * k) / reps;
+        g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * rt, cy + Math.sin(a) * rt);
+        g.strokeStyle = SLATE; g.lineWidth = 2.2 * d; g.stroke();
+      }
+    }
+    if (opts.labels) {
+      const a = (a0 + a1) / 2, rr = rt + 9 * d;
+      g.fillStyle = on ? INK(0.8) : INK(0.4); g.font = `${9 * d}px "IBM Plex Mono", monospace`; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText(R.raw[i], cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+    }
+  }
+  return R;
+}
+function drawFlower(cv, o) {
+  const g = cv.getContext("2d"), d = fit(cv), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2;
+  const R = Math.min(W, H) * (o.labels ? 0.4 : 0.46);
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = "#161615"; g.beginPath(); g.arc(cx, cy, Math.min(W, H) * 0.49, 0, TAU); g.fill();
+  const r = petals(g, o, cx, cy, R * 0.42, R, d, { labels: o.labels });
+  g.beginPath(); g.arc(cx, cy, R * 0.42 - 2 * d, 0, TAU); line(g, d, 0.75, 0.8);
+  g.fillStyle = INK(0.9); g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = `${Math.max(9, R * 0.12)}px "IBM Plex Mono", monospace`;
+  if (o.density !== 0) g.fillText(`${r.active.filter(Boolean).length}/${r.N}`, cx, cy);
+}
+function drawBloom(cv, o) {
+  const g = cv.getContext("2d"), d = fit(cv), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.47;
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = "#161615"; g.beginPath(); g.arc(cx, cy, R * 1.04, 0, TAU); g.fill();
+  const inner = R * 0.2, bw = (R - inner) / o.rings.length;
+  o.rings.forEach((ring, k) => {
+    const r0 = inner + k * bw + 2 * d;
+    petals(g, ring, cx, cy, r0, r0 + bw - 4 * d, d);
+    g.beginPath(); g.arc(cx, cy, r0 - 1 * d, 0, TAU); line(g, d, 0.25, 0.6);
+  });
+}
+function drawTree(cv, o) {
+  const R = rhythm(o), g = cv.getContext("2d"), d = fit(cv), W = cv.width, H = cv.height, N = R.N, f = R.factors, z = f.length;
+  const pad = 14 * d, cell = (W - 2 * pad) / N, X = i => pad + (i + 0.5) * cell;
+  const top = 10 * d, leafY = H - 24 * d, Y = L => top + (L / z) * (leafY - top);
+  g.clearRect(0, 0, W, H);
+  const nodes = [];
+  g.beginPath();
+  let groups = 1;
+  for (let L = 0; L < z; L++) {
+    const span = N / groups, child = span / f[L];
+    for (let gi = 0; gi < groups; gi++) {
+      const s0 = gi * span, px = (X(s0) + X(s0 + span - 1)) / 2, py = Y(L);
+      nodes.push([px, py, f[L]]);
+      for (let k = 0; k < f[L]; k++) {
+        const cs = s0 + k * child, qx = (X(cs) + X(cs + child - 1)) / 2, qy = Y(L + 1), h = qy - py;
+        g.moveTo(px, py);
+        g.bezierCurveTo(px + (qx - px) * 0.15, py + h * 0.55, qx, qy - h * 0.8, qx, qy);
+      }
+    }
+    groups *= f[L];
+  }
+  line(g, d, 0.8, 0.75);
+  g.font = `${9 * d}px "IBM Plex Mono", monospace`; g.textBaseline = "middle"; g.textAlign = "left";
+  for (const [x, y, fac] of nodes) {
+    g.fillStyle = INK(0.95); g.beginPath(); g.arc(x, y, 2.6 * d, 0, TAU); g.fill();
+    g.fillStyle = INK(0.55); g.fillText(fac, x + 5 * d, y + 1 * d);
+  }
+  g.textAlign = "center"; g.textBaseline = "top";
+  for (let i = 0; i < N; i++) {
+    const x = X(i), rad = (2 + 2.6 * R.w[i]) * d, on = R.active[i];
+    g.beginPath(); g.arc(x, leafY, rad, 0, TAU);
+    g.fillStyle = on ? INK(0.2 + 0.75 * R.vel[i]) : SLATE; g.fill();
+    g.strokeStyle = INK(0.9); g.lineWidth = 1.2 * d; g.stroke();
+    g.fillStyle = on ? INK(0.8) : INK(0.4); g.fillText(R.raw[i], x, leafY + rad + 3 * d);
+  }
+}
+// time runs left to right; each row is one rhythm, marks are hits (height = loudness)
+function drawStrip(cv, o) {
+  const g = cv.getContext("2d"), d = fit(cv), W = cv.width, H = cv.height, T = o.beats;
+  const left = 64 * d, right = 10 * d, x = b => left + ((W - left - right) * b) / T, rows = o.rows, rh = (H - 8 * d) / rows.length;
+  g.clearRect(0, 0, W, H);
+  for (let b = 0; b <= T; b++) { g.beginPath(); g.moveTo(x(b), 0); g.lineTo(x(b), H); g.strokeStyle = INK(b % 4 === 0 ? 0.14 : 0.06); g.lineWidth = d; g.stroke(); }
+  const taken = {};
+  rows.forEach((row, k) => {
+    const len = row.length || 4, R = rhythm(row, row.lock ? taken[row.steps] : null), N = R.N, sd = len / N;
+    if (!row.lock) taken[row.steps] = taken[row.steps] || R.active.slice();
+    const y0 = 4 * d + k * rh, base = y0 + rh * 0.82, top = y0 + rh * 0.14;
+    g.fillStyle = INK(0.5); g.font = `${10 * d}px "IBM Plex Mono", monospace`; g.textAlign = "left"; g.textBaseline = "middle";
+    g.fillText(row.label || "", 4 * d, (base + top) / 2);
+    g.beginPath(); g.moveTo(left, base); g.lineTo(W - right, base); line(g, d, 0.18, 0.6);
+    let seed = 7 + k * 13;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647) * 2 - 1;
+    for (let n = 0; n * sd < T - 1e-9; n++) {
+      const i = n % N, b = n * sd + (i % 2 ? (row.swing || 0) * sd * 0.5 : 0) + (row.jitter || 0) * sd * rnd();
+      g.beginPath(); g.arc(x(n * sd), base, 1 * d, 0, TAU); g.fillStyle = INK(0.25); g.fill();
+      if (i === 0) { g.beginPath(); g.moveTo(x(n * sd), top - 4 * d); g.lineTo(x(n * sd), base + 4 * d); line(g, d, 0.55, 0.8); }
+      if (!R.active[i]) continue;
+      const reps = (row.ratchets && row.ratchets[i]) || 1;
+      for (let r = 0; r < reps; r++) {
+        const bb = b + (r * sd) / reps, h = (base - top) * R.vel[i] * Math.pow(0.72, r), wd = Math.max(2 * d, ((x(sd / reps) - x(0)) * 0.42));
+        g.fillStyle = INK(i === 0 ? 0.95 : 0.35 + 0.5 * R.vel[i]);
+        g.fillRect(x(bb), base - h, Math.min(wd, 6 * d), h);
+      }
+    }
+  });
+}
+
+const DRAW = { flower: drawFlower, bloom: drawBloom, tree: drawTree, strip: drawStrip };
+// each figure is backed with the panel colour so print, which flattens canvases onto white, matches the screen
+function drawAll() {
+  document.querySelectorAll("canvas[data-fig]").forEach(cv => {
+    const o = JSON.parse(cv.dataset.fig), g = cv.getContext("2d");
+    DRAW[o.type](cv, o);
+    g.globalCompositeOperation = "destination-over"; g.fillStyle = SLATE; g.fillRect(0, 0, cv.width, cv.height); g.globalCompositeOperation = "source-over";
+  });
+}
+drawAll();
+document.fonts?.ready.then(drawAll);
+// theory/build.mjs loads the page with #export and reads every figure back as a PNG on the panel colour
+if (location.hash === "#export") (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
+  drawAll();
+  const shots = {};
+  document.querySelectorAll("canvas[data-name]").forEach(cv => {
+    const c = document.createElement("canvas"), g = c.getContext("2d");
+    c.width = cv.width; c.height = cv.height;
+    g.fillStyle = SLATE; g.fillRect(0, 0, c.width, c.height); g.drawImage(cv, 0, 0);
+    shots[cv.dataset.name] = c.toDataURL("image/png");
+  });
+  document.body.insertAdjacentHTML("beforeend", `<pre id="export">${JSON.stringify(shots).replace(/&/g, "&amp;")}</pre>`);
+});
+// print shows each figure as a flat image; Chrome's PDF output drops parts of canvases
+addEventListener("beforeprint", () => {
+  drawAll();
+  document.querySelectorAll("canvas[data-fig]").forEach(cv => {
+    let img = cv.nextElementSibling;
+    if (!img || !img.classList.contains("print")) { img = document.createElement("img"); img.className = "print"; cv.after(img); }
+    img.src = cv.toDataURL("image/png"); img.style.cssText = cv.style.cssText;
+  });
+});
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(drawAll, 80); });
+</script>
+</body>
+</html>

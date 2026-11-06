@@ -39,6 +39,7 @@ button,select,input{font:inherit;color:inherit}
 /* header cells: a small caption over one 24px line of controls, every cell bottom-aligned */
 .hcell{display:flex;flex-direction:column;gap:6px}
 .cap{font:var(--cap);letter-spacing:.2em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
+a.btn{text-decoration:none}
 .top .btn{height:24px;padding:0 9px;display:inline-grid;place-items:center}
 .top select{height:24px;padding:0 6px;max-width:160px}
 .top .outs{margin-left:auto}
@@ -282,6 +283,7 @@ body.perform .bloomWrap{position:relative;top:0;width:min(100%,calc(100vh - 220p
       <select id="midiOut" hidden></select>
       <button class="btn" id="performBtn" title="Show only the Bloom. P.">Perform</button>
       <button class="btn" id="visBtn" title="Full-screen visuals driven by the rhythms. V, Esc to close.">Visuals</button>
+      <a class="btn" href="about.html" title="How the machine works, and the theory behind it.">About</a>
     </div>
   </div>
 </header>
