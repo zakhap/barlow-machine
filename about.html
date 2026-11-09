@@ -155,38 +155,38 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
 <ul>
   <li><span class="ctl">Tempo</span> sets beats per minute.</li>
   <li><span class="ctl">Cycle</span> sets how many beats make one bar.</li>
-  <li><b>Length</b> is one rhythm's own cycle in beats, which can differ from the bar and needn't be whole.</li>
-  <li><b>Grid</b> is steps per beat, so steps equal length times grid.</li>
-  <li><b>Steps</b> sets the step count directly, and the meter then comes from its prime factors.</li>
-  <li><b>Polymeter</b> is rhythms of different lengths drifting apart and realigning at their least common multiple.</li>
+  <li><span class="ctl">Length</span> is one rhythm's own cycle in beats. It can differ from the bar and doesn't have to be whole.</li>
+  <li><span class="ctl">Grid</span> is steps per beat, so steps equal length times grid.</li>
+  <li><span class="ctl">Steps</span> sets the step count directly, and the meter then comes from its prime factors.</li>
+  <li><b>Polymeter</b> is rhythms of different lengths drifting apart and lining up again at their least common multiple.</li>
 </ul>
 <p><b>Pattern</b></p>
 <ul>
   <li><span class="ctl">Density</span> sets how many steps play, turning them on strongest first.</li>
   <li><span class="ctl">Mode</span> chooses hits by rank in Barlow mode or spreads them evenly in Euclid mode.</li>
-  <li><span class="ctl">Rotation</span> slides the hits around the cycle while the meter stays put.</li>
+  <li><span class="ctl">Rotate</span> slides the hits around the cycle while the meter stays put.</li>
   <li><span class="ctl">Lock</span> makes a rhythm avoid or join the hits of the same-length rhythms above it.</li>
   <li><span class="ctl">Energy</span> pushes every rhythm's density up or down at once.</li>
   <li><span class="ctl">Fill</span> adds more hits while held.</li>
 </ul>
 <p><b>Feel</b></p>
 <ul>
-  <li><span class="ctl">Accent</span> sets how much weight decides velocity, from flat to the downbeat at full and the weakest step at 20%.</li>
+  <li><span class="ctl">Vel depth</span> sets how much weight decides loudness, from flat to the downbeat at full and the weakest step at 20%.</li>
   <li><span class="ctl">Chance</span> is the probability that any hit plays on a given pass.</li>
   <li><span class="ctl">Weak drop</span> makes low-weight steps skip more often than strong ones.</li>
-  <li><span class="ctl">Ghost</span> gives empty steps a chance of a very quiet hit, louder on stronger steps.</li>
-  <li><span class="ctl">Swing</span> delays every second step, up to half a step.</li>
-  <li><span class="ctl">Jitter</span> moves each hit early or late by a random few milliseconds.</li>
-  <li><span class="ctl">Vel jitter</span> randomly varies each hit's velocity.</li>
+  <li><span class="ctl">Ghosts</span> give empty steps a chance of a very quiet hit, louder on stronger steps.</li>
+  <li><span class="ctl">Swing</span> delays every second step.</li>
+  <li><span class="ctl">Timing</span> moves each hit early or late by a random few milliseconds.</li>
+  <li><span class="ctl">Vel jitter</span> varies each hit's loudness at random.</li>
 </ul>
 <p><b>Motion</b></p>
 <ul>
   <li><b>Ratchet</b> splits one hit into several faster, quieter repeats inside its step.</li>
-  <li><span class="ctl">Ratchet chance</span> sets how often a ratchet happens, more often on weak steps.</li>
+  <li><span class="ctl">Ratchet</span> sets how often a ratchet happens, more often on weak steps, and <span class="ctl">Ratchet ×</span> sets how many repeats.</li>
   <li><span class="ctl">Spin</span> rotates the pattern by a few steps at the end of every cycle.</li>
   <li><span class="ctl">Drift</span> nudges a rhythm's density, rotation or strata every few cycles.</li>
   <li><span class="ctl">Drift steps</span> lets drift also change a rhythm's grid or step count.</li>
-  <li><span class="ctl">Drift every</span> sets how many cycles pass between drift moves.</li>
+  <li><span class="ctl">Drift</span> in the header sets how many cycles pass between drift moves.</li>
   <li><span class="ctl">Mutate</span> does all of drift at once, with new strata, density, rotation and sometimes mode or lock.</li>
 </ul>
 <p><b>Sound</b></p>
@@ -196,54 +196,54 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
 </ul>
 </aside>
 <h1>a drum machine with a particular theory of time</h1>
-<p class="lede">"Clarence" uses a particular conception of how time should be divided, how rhythm is felt, how to conceive of and modulate between divisions of a cycle. In any given meter, some pulses will matter more than others. Clarence Barlow derived a methodology for arriving at any given meter's hierarchy of beats. This doc hopes to explain the ranking system known as "Indispensibilty", where it comes from, and how each parameter controls variation in the resulting rhythmic patterns.</p>
+<p class="lede">Clarence is built on one idea about how time divides and how rhythm is felt. In any meter, some pulses matter more than others. Clarence Barlow worked out a method that ranks every pulse of any meter, and he called the ranking indispensability. This page explains where it comes from, how it works, and how each control in the machine uses it to vary a pattern.</p>
 <figure>
   <div class="figs" style="--cols:1;--mcols:1">
     <div class="cell"><canvas class="flower" style="max-width:420px;margin:0 auto" data-name="intro-1.png" data-fig='{"type":"bloom","rings":[{"steps":16,"density":0.25},{"steps":16,"pattern":"x..x..x...x.x..."},{"steps":12,"factors":[2,2,3],"density":0.42,"rotation":1},{"steps":8,"density":0.5,"rotation":2}]}'></canvas></div>
   </div>
-  <figcaption><b>The Bloom, a Radial Chart Interface to Rhythmic Exploration.</b> Each ring represents a unique rhythm, one entire cycle read clockwise from the top. Petal length is proportional to the step's metric weight, and a filled in petal is a trigger for sounding.</figcaption>
+  <figcaption><b>The Bloom.</b> Each ring is one rhythm, a whole cycle read clockwise from the top. Petal length is the step's weight, and a filled petal plays.</figcaption>
 </figure>
 
 <section id="clarence-barlow">
 <h2><span class="n">01</span>Clarence Barlow</h2>
-<p>Clarence Barlow was an influential composer and theorist in the world academic electronic music. Prolific teacher, he had great influence over the California computer music scene—Berkeley, Stanford, UCSC, UCSD.</p>
-<p>While composing rule-based music, Barlow began deriving rules around musical instinct. His first innovation here was a scoring mechanism for <i>how consonant is a harmonic interval</i>. While there's probably something to build here too, I was more interested in his second innovation:  <b>indispensability</b> or the measurement/ranking of every pulse within a meter—how much does the meter need that pulse to stay recognizable. At the extreme, the downbeat is all that's needed to punctuate the cycle of time. In more complex meters, such as 5/4, the measure can be divided into 2:3 or 3:2, each influences which pulses are indispensable to our perception of that meter. Barlow originally published the method in "Two Essays on Theory" in <i>Computer Music Journal</i> in 1987.</p>
-<p>This browser-based rhythm toy is based on that one formula, the circular layout is a nod to the "time is flat circle" meme.</p>
+<p>Clarence Barlow was a composer and theorist of academic electronic music. He taught for decades and had a strong influence on the California computer music scene, at Berkeley, Stanford, UCSC and UCSD.</p>
+<p>While writing rule-based music, Barlow tried to turn musical instinct into rules. The first was a score for <i>how consonant a harmonic interval is</i>. There's probably something to build from that too, but I was more interested in the second, <b>indispensability</b>. It ranks every pulse in a meter by how much the meter needs that pulse to stay recognizable. At the extreme, the downbeat alone is enough to mark the cycle. In a meter like 5/4, the bar can split as 2+3 or 3+2, and each split changes which pulses the meter can't do without. Barlow published the method in "Two Essays on Theory" in <i>Computer Music Journal</i> in 1987.</p>
+<p>This browser toy is built on that one formula. The circular layout is a nod to the "time is a flat circle" meme.</p>
 </section>
 
 <section id="dividing-a-cycle">
 <h2><span class="n">02</span>Dividing a cycle</h2>
-<p>A rhythm in the machine is a <b>cycle</b> of equal <b>steps</b> that repeats. Cycles can be divided in many different ways. Twelve steps can be heard as three groups of four, four groups of three, or two groups of six that each split again. Barlow describes this as a stack of division, but is also just prime factoring. The layers are called <b>strata</b>.</p>
-<p>Twelve can be written as 2·2·3—three strata. The order of the primes describes the meter. <code>2·2·3</code> divides the cycle in half, each half in half again, and each quarter into three. That's four beats of triplets, a 12/8 feel. <code>3·2·2</code> divides the cycle into three beats of four sixteenths—a very different <i>feeling</i> rhythm.</p>
+<p>A rhythm in the machine is a <b>cycle</b> of equal <b>steps</b> that repeats, and a cycle can be divided many ways. Twelve steps can be heard as three groups of four, four groups of three, or two groups of six that each split again. Barlow describes this as a stack of divisions, which is prime factoring by another name. The layers are called <b>strata</b>.</p>
+<p>Twelve can be written as <code>2·2·3</code>, which is three strata. The order of the primes is the meter. <code>2·2·3</code> halves the cycle, halves each half, and splits each quarter into three. That's four beats of triplets, a 12/8 feel. <code>3·2·2</code> makes three beats of four sixteenths, and it feels like a different rhythm.</p>
 <figure>
   <div class="figs" style="--cols:3;--mcols:2">
     <div class="cell"><canvas class="tree" data-name="dividing-a-cycle-1a.png" data-fig='{"type":"tree","steps":12,"factors":[2,2,3],"density":0}'></canvas><div class="lab">2 · 2 · 3</div></div>
     <div class="cell"><canvas class="tree" data-name="dividing-a-cycle-1b.png" data-fig='{"type":"tree","steps":12,"factors":[2,3,2],"density":0}'></canvas><div class="lab">2 · 3 · 2</div></div>
     <div class="cell"><canvas class="tree" data-name="dividing-a-cycle-1c.png" data-fig='{"type":"tree","steps":12,"factors":[3,2,2],"density":0}'></canvas><div class="lab">3 · 2 · 2</div></div>
   </div>
-  <figcaption><b>three different meters of the twelve beat cycle</b>. The leaves are the twelve steps, sized by weight and ranked beneath. The order of the strata <i>changes which steps are strong</i>. The biggest number is the strongest.</figcaption>
+  <figcaption><b>Three meters of the same twelve steps.</b> The leaves are the twelve steps, sized by weight and ranked underneath. The order of the strata <i>changes which steps are strong</i>. The biggest number is the strongest step.</figcaption>
 </figure>
-<p>The machine picks the strata for you from <span class="ctl">Cycle</span> and <span class="ctl">Grid</span>. The beats of the cycle are the top strata, and the grid, which is steps per beat, divides each beat below them. Four beats on a grid of 4 gives <code>2·2·2·2</code>. Four beats on a grid of 3 gives <code>2·2·3</code>. You can reorder the primes, manually enabling variation, but also <span class="ctl">Drift</span> (a form of rhythm-specific randomness offered) will sometimes reorders them for you.</p>
+<p>The machine picks the strata from <span class="ctl">Cycle</span> and <span class="ctl">Grid</span>. The beats of the cycle are the top strata, and the grid divides each beat below them. Four beats on a grid of 4 gives <code>2·2·2·2</code>. Four beats on a grid of 3 gives <code>2·2·3</code>. You can reorder the primes yourself, and <span class="ctl">Drift</span> sometimes reorders them for you.</p>
 <h3>Primes larger than three</h3>
-<p>Barlow gave fixed rankings for 2 and 3. A larger prime is first broken into groups of two with one three at the end, so 5 becomes 2+3 and 7 becomes 2+2+3, and those groups are ranked with the same method. This is why a cycle of five steps feels like a short-long pair and seven feels like short-short-long.</p>
+<p>Barlow gave fixed rankings for 2 and 3. A larger prime is first broken into groups of two with one three at the end, so 5 becomes 2+3 and 7 becomes 2+2+3, and those groups are ranked the same way. That's why a cycle of five steps feels like a short-long pair and seven feels like short-short-long.</p>
 <figure>
   <div class="figs" style="--cols:3;--mcols:3">
     <div class="cell"><canvas class="flower" data-name="dividing-a-cycle-2a.png" data-fig='{"type":"flower","steps":5,"density":0,"labels":true}'></canvas><div class="lab">5 = 2+3 · <code>4 0 3 1 2</code></div></div>
     <div class="cell"><canvas class="flower" data-name="dividing-a-cycle-2b.png" data-fig='{"type":"flower","steps":7,"density":0,"labels":true}'></canvas><div class="lab">7 = 2+2+3 · <code>6 0 4 1 5 2 3</code></div></div>
     <div class="cell"><canvas class="flower" data-name="dividing-a-cycle-2c.png" data-fig='{"type":"flower","steps":10,"factors":[5,2],"density":0,"labels":true}'></canvas><div class="lab">5 · 2</div></div>
   </div>
-  <figcaption><b>Odd meter examples</b> Petal length shows each step's weight. The number is its indispensability rank. Note: the downbeat is always the highest rank.</figcaption>
+  <figcaption><b>Odd meters.</b> Petal length is each step's weight and the number is its rank. The downbeat always ranks highest.</figcaption>
 </figure>
 </section>
 
 <section id="indispensability">
 <h2><span class="n">03</span>Indispensability</h2>
-<p>Every step in a cycle of N steps gets a unique rank, from N−1 for the most indispensable down to 0. The downbeat always ranks highest. The rest follows from two rules applied one stratum at a time.</p>
+<p>Every step in a cycle of N steps gets its own rank, from N−1 for the most indispensable down to 0. The downbeat always ranks highest. The rest follows from two rules applied one stratum at a time.</p>
 <ul>
   <li><b>Coarse pulses keep their order.</b> When a stratum is added, the pulses that already existed stay above all the new ones, in the same order as before.</li>
   <li><b>New pulses rank by where they sit and what comes next.</b> A new pulse first ranks by its position inside its group, using the small table for that prime. Ties go to the pulse that leads into the stronger coarse pulse.</li>
 </ul>
-<p>For two pulses the table is <code>1 0</code>, so the downbeat beats the offbeat. For three it is <code>2 0 1</code>. The third pulse outranks the second because it leads into the next downbeat. That pull toward the next strong pulse is the heart of Barlow's idea, and it's a small rule that does a lot of work. It explains why the last eighth of a bar of four sounds like it belongs to the next bar.</p>
+<p>For two pulses the table is <code>1 0</code>, so the downbeat beats the offbeat. For three it is <code>2 0 1</code>. The third pulse outranks the second because it leads into the next downbeat. That pull toward the next strong pulse is the center of Barlow's idea, and a small rule does a lot of work here. It explains why the last eighth of a bar of four sounds like it belongs to the next bar.</p>
 <p>Four beats as <code>2·2</code> ranks <code>3 0 2 1</code>. Beat one comes first, then beat three, then beat four because it leads into beat one, and beat two comes last. Sixteen steps as <code>2·2·2·2</code> ranks:</p>
 <p class="ranks">15 0 8 4 12 2 10 6 14 1 9 5 13 3 11 7</p>
 <figure>
@@ -252,20 +252,20 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
   </div>
   <figcaption><b>Sixteen steps, four strata of two.</b> The quarter notes carry the top four ranks, the eighths the next four, and the sixteenths the rest. Within each layer, the pulse that leads into a stronger one comes first.</figcaption>
 </figure>
-<p>The machine scales each rank to a <b>weight</b> between 0 and 1. Weight is the one number that most of the controls below read.</p>
+<p>The machine scales each rank to a <b>weight</b> between 0 and 1. Most of the controls below read that one number.</p>
 </section>
 
 <section id="trees-and-flowers">
 <h2><span class="n">04</span>Trees and flowers</h2>
-<p>A rhythm can be draw 2 ways, as a Flower or Tree (flower is a nice name for a radial diagram).</p>
-<p>The <b>tree</b> is displayed under each rhythm, showing the hierarchies of the meter. The root is the whole cycle, each branch point is a stratum, and the leaves are the steps, left to right in time. Leaf size is weight, a filled leaf trigger, and clicking a leaf manually toggles it on.</p>
-<p>The <b>flower</b> is the same cycle wrapped into a circle, starting at the top and running clockwise. Each petal is a step and its length is the step's weight, so the shape of the empty flower is the meter itself. Filled petals play. Brightness is velocity (~loudness). A petal filled only partway plays only some of the time (representing chance as a subset of the whole). The Bloom stacks every rhythm's flower as rings so you can see where they line up.</p>
+<p>A rhythm is drawn two ways, as a tree and as a flower. Flower is just a nicer name for a radial diagram.</p>
+<p>The <b>tree</b> sits at the bottom of each rhythm's card and shows the meter's hierarchy. The root is the whole cycle, each branch point is a stratum, and the leaves are the steps, left to right in time. Leaf size is weight, a filled leaf plays, and clicking a leaf flips it. In Euclid mode the tree gives way to a row of bars showing how loud each hit plays, and either one can be hidden.</p>
+<p>The <b>flower</b> is the same cycle wrapped into a circle, starting at the top and running clockwise. Each petal is a step and its length is the step's weight, so the empty flower is the shape of the meter. Filled petals play, and brightness is loudness. A petal filled partway plays only some of the time, and the fill shows how often. The Bloom stacks every rhythm's flower as rings so you can see where they line up.</p>
 <figure>
   <div class="figs" style="--cols:2;--mcols:2">
     <div class="cell"><canvas class="tree" style="height:150px" data-name="trees-and-flowers-1a.png" data-fig='{"type":"tree","steps":12,"factors":[3,2,2],"density":0.42}'></canvas><div class="lab">tree</div></div>
     <div class="cell"><canvas class="flower" style="max-width:220px;margin:0 auto" data-name="trees-and-flowers-1b.png" data-fig='{"type":"flower","steps":12,"factors":[3,2,2],"density":0.42,"labels":true}'></canvas><div class="lab">flower</div></div>
   </div>
-  <figcaption><b>The same rhythm</b> Twelve steps as 3·2·2 with five hits (5 out of 12 <i>density</i>). The five strongest steps play, and in the flower they are the five longest petals.</figcaption>
+  <figcaption><b>The same rhythm twice.</b> Twelve steps as <code>3·2·2</code> with a density of 5 in 12. The five strongest steps play, and in the flower they're the five longest petals.</figcaption>
 </figure>
 </section>
 
@@ -273,26 +273,26 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
 <h2><span class="n">05</span>Cycles and time</h2>
 <p>The clock counts <b>beats</b>. <span class="ctl">Tempo</span> sets beats per minute and <span class="ctl">Cycle</span> sets how many beats make one bar. Each rhythm then has three numbers of its own.</p>
 <ul>
-  <li><b>Length</b> is the rhythm's cycle in beats. "Global" follows <span class="ctl">Cycle</span>. Any other value adjusts the rest locally to the particular rhythm.</li>
-  <li><b>Grid</b> is steps per beat. Steps = length × grid. The beat count is the numerator of the meter.</li>
-  <li><b>Steps</b> can also be set directly, deriving the rhythm from there. Its steps spread evenly over its length and the meter comes from the prime factors of the step count.</li>
+  <li><span class="ctl">Length</span> is the rhythm's cycle in beats. Global follows <span class="ctl">Cycle</span>. Any other value gives the rhythm its own loop, separate from the bar. Double-click it, or choose Follow the bar, to go back to global.</li>
+  <li><span class="ctl">Grid</span> is steps per beat, and steps = length × grid. The beat count is the top level of the meter.</li>
+  <li><span class="ctl">Steps</span> can also be set directly. The steps then spread evenly over the length, and the meter comes from the prime factors of the step count.</li>
 </ul>
 <h3>Polymeter</h3>
-<p>When two rhythms have different lengths they drift against each other and line up again after the least common multiple of the two. A 3-beat rhythm against a 4-beat bar meets the bar again every 12 beats. A 6-beat bongo against a 2-beat conga meets every 6. A length of 8 against 4 gives half time.</p>
+<p>When two rhythms have different lengths they drift against each other, and they line up again after the least common multiple of the two. A 3-beat rhythm against a 4-beat bar meets the bar again every 12 beats. A 6-beat bongo against a 2-beat conga meets it every 6. A length of 8 against 4 gives half time.</p>
 <figure>
   <div class="figs" style="--cols:1;--mcols:1">
     <div class="cell"><canvas class="strip" style="--h:130px" data-name="cycles-and-time-1.png" data-fig='{"type":"strip","beats":12,"rows":[{"label":"4 beats","length":4,"steps":16,"density":0.25},{"label":"3 beats","length":3,"steps":12,"factors":[3,2,2],"density":0.34}]}'></canvas></div>
   </div>
-  <figcaption><b>Three against four.</b> Twelve beats of time. The top rhythm repeats every 4 beats and the lower one every 3. The hairlines mark where each cycle starts. They only meet at the start, so the combined pattern is 12 beats long. The 4th beat of the 3-length cycle is the "pickup" to the cycle, derived from the indispensability weighting of the possible other 4th beats.</figcaption>
+  <figcaption><b>Three against four.</b> Twelve beats of time. The top rhythm repeats every 4 beats and the lower one every 3. The hairlines mark where each cycle starts, and they only meet at the start, so the combined pattern is 12 beats long. The 4th hit of the 3-beat cycle is the pickup into its next cycle, chosen by indispensability over the other steps it could have landed on.</figcaption>
 </figure>
-<h3>But not all Lengths are whole...</h3>
-<p>Lengths don't need to be whole numbers. A 2½-beat shaker against a five-beat bar plays twice per bar, and a 2½-beat shaker against four beats takes five bars to arrive at the top together. Each rhythm keeps its own meter independent from all other rhythms.</p>
+<h3>Lengths don't have to be whole</h3>
+<p>A 2½-beat shaker against a five-beat bar plays twice per bar. Against four beats it takes five bars to come back to the top together. Each rhythm keeps its own meter, whatever the others are doing.</p>
 </section>
 
 <section id="pattern">
 <h2><span class="n">06</span>Pattern</h2>
 <h3>Density</h3>
-<p><span class="ctl">Density</span> sets how many steps play. In Barlow mode the machine turns steps on in rank order, so one knob gives a family of patterns where each denser one contains every sparser one. At low density you hear only the downbeats. As you turn it up, the beats arrive, then the offbeats, then the pickups, which is roughly the order a drummer adds notes when building up. Density is the main control for any rhythm.</p>
+<p><span class="ctl">Density</span> sets how many steps play. In Barlow mode the machine turns steps on in rank order, so one control gives a family of patterns where each denser one contains every sparser one. At low density you hear only the downbeats. As you turn it up the beats arrive, then the offbeats, then the pickups, which is roughly the order a drummer adds notes when building up. Density is the main control on every rhythm.</p>
 <figure>
   <div class="figs" style="--cols:4;--mcols:4">
     <div class="cell"><canvas class="flower" data-name="pattern-1a.png" data-fig='{"type":"flower","steps":16,"density":0.125}'></canvas><div class="lab">2 / 16</div></div>
@@ -300,10 +300,10 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
     <div class="cell"><canvas class="flower" data-name="pattern-1c.png" data-fig='{"type":"flower","steps":16,"density":0.375}'></canvas><div class="lab">6 / 16</div></div>
     <div class="cell"><canvas class="flower" data-name="pattern-1d.png" data-fig='{"type":"flower","steps":16,"density":0.5}'></canvas><div class="lab">8 / 16</div></div>
   </div>
-  <figcaption><b>Density in Barlow mode.</b> Each additional value to the pattern adds the next strongest steps. <span class="ctl">Energy</span> in the header pushes <i>every</i> rhythm's density up or down at once, and <span class="ctl">Fill</span> adds more while held.</figcaption>
+  <figcaption><b>Density in Barlow mode.</b> Each step up adds the next strongest steps. <span class="ctl">Energy</span> in the header pushes <i>every</i> rhythm's density up or down at once, and <span class="ctl">Fill</span> adds more while held.</figcaption>
 </figure>
 <h3>Barlow and Euclid</h3>
-<p><span class="ctl">Mode</span> picks how the hits are chosen. Barlow takes the strongest steps. Euclid spreads the same number of hits <i>as evenly as possible</i> over the cycle, which gives produces many traditional bell and clave patterns. Five hits in sixteen, for example, is four beats plus a pickup in Barlow mode and gaps of 4-3-3-3-3 in Euclid mode. Euclid <b>ignores</b> the meter when selecting steps, but the meter still sets the loudness/velocity of each hit.</p>
+<p><span class="ctl">Mode</span> picks how the hits are chosen. Barlow takes the strongest steps. Euclid spreads the same number of hits <i>as evenly as possible</i> over the cycle, which produces many traditional bell and clave patterns. Five hits in sixteen, for example, is four beats plus a pickup in Barlow mode and gaps of 4-3-3-3-3 in Euclid mode. Euclid <b>ignores</b> the meter when it picks steps, but the meter still sets how loud each hit is.</p>
 <figure>
   <div class="figs" style="--cols:4;--mcols:4">
     <div class="cell"><canvas class="flower" data-name="pattern-2a.png" data-fig='{"type":"flower","steps":16,"density":0.3125}'></canvas><div class="lab">Barlow 5/16</div></div>
@@ -311,10 +311,10 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
     <div class="cell"><canvas class="flower" data-name="pattern-2c.png" data-fig='{"type":"flower","steps":12,"factors":[2,2,3],"density":0.5833}'></canvas><div class="lab">Barlow 7/12</div></div>
     <div class="cell"><canvas class="flower" data-name="pattern-2d.png" data-fig='{"type":"flower","steps":12,"factors":[2,2,3],"density":0.5833,"mode":"euclid"}'></canvas><div class="lab">Euclid 7/12</div></div>
   </div>
-  <figcaption><b>Modes of a feather</b> Left is Barlow, Right is Euclid. Euclid 7 in 12 is a rotation of the West African bell pattern used in bembé. Barlow 7 in 12 plays the four beats and the triplet notes that lead into three of them.</figcaption>
+  <figcaption><b>Barlow on the left, Euclid on the right.</b> Euclid 7 in 12 is a rotation of the West African bell pattern used in bembé. Barlow 7 in 12 plays the four beats and the triplet notes that lead into three of them.</figcaption>
 </figure>
-<h3>Rotation</h3>
-<p><span class="ctl">Rotation</span> shifts the pattern around the cycle but <i>the meter does not move</i>. The petals keep their lengths, so a hit that was on a strong step lands on a weak one and gets quieter. Rotating a pattern changes both where its hits fall in the cycle and how they are accented.</p>
+<h3>Rotate</h3>
+<p><span class="ctl">Rotate</span> shifts the pattern around the cycle, but <i>the meter doesn't move</i>. The petals keep their lengths, so a hit that was on a strong step lands on a weak one and gets quieter. Rotating changes both where the hits fall and how they're accented.</p>
 <figure>
   <div class="figs" style="--cols:4;--mcols:4">
     <div class="cell"><canvas class="flower" data-name="pattern-3a.png" data-fig='{"type":"flower","steps":16,"density":0.3125,"rotation":0}'></canvas><div class="lab">rotation 0</div></div>
@@ -322,48 +322,48 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
     <div class="cell"><canvas class="flower" data-name="pattern-3c.png" data-fig='{"type":"flower","steps":16,"density":0.3125,"rotation":2}'></canvas><div class="lab">rotation 2</div></div>
     <div class="cell"><canvas class="flower" data-name="pattern-3d.png" data-fig='{"type":"flower","steps":16,"density":0.3125,"rotation":3}'></canvas><div class="lab">rotation 3</div></div>
   </div>
-  <figcaption><b>Rotating a pattern over a fixed meter.</b> While the fills move, the pedals stay the same length. Brightness stays a function of pedal weight.</figcaption>
+  <figcaption><b>Rotating a pattern over a fixed meter.</b> The fills move and the petals stay the same length. Brightness still follows each petal's weight.</figcaption>
 </figure>
 <h3>Lock</h3>
-<p><span class="ctl">Lock</span> relates a rhythm to the ones above it in the rack. <b>Avoid</b> pushes steps where earlier rhythms already hit to the bottom of the ranking, so the rhythm fills the gaps and the parts interlock. <b>Join</b> pulls those steps to the top, so the rhythm doubles what is already there. Lock only compares rhythms with the same length.</p>
+<p><span class="ctl">Lock</span> relates a rhythm to the ones above it in the rack. <b>Avoid</b> pushes the steps where earlier rhythms already hit to the bottom of the ranking, so the rhythm fills the gaps and the parts interlock. <b>Join</b> pulls those steps to the top, so the rhythm doubles what's already there. Lock only compares rhythms with the same length.</p>
 <figure>
   <div class="figs" style="--cols:1;--mcols:1">
     <div class="cell"><canvas class="strip" style="--h:170px" data-name="pattern-4.png" data-fig='{"type":"strip","beats":4,"rows":[{"label":"kick","steps":16,"density":0.25},{"label":"free","steps":16,"density":0.25},{"label":"avoid","steps":16,"density":0.25,"lock":"avoid"},{"label":"join","steps":16,"density":0.375,"lock":"join"}]}'></canvas></div>
   </div>
-  <figcaption><b>Lock against a kick.</b> With lock off, a second rhythm at the same density lands on the kick. Avoid moves it to <i>the next strongest free steps</i>. Join increases the higher density, adding to the kicks steps.</figcaption>
+  <figcaption><b>Lock against a kick.</b> With lock off, a second rhythm at the same density lands on the kick. Avoid moves it to <i>the next strongest free steps</i>. Join keeps it stacked on the kick's steps.</figcaption>
 </figure>
 <h3>Writing steps by hand</h3>
-<p>Click a petal or leaf to flip one step. The machine stores your edits relative to the pattern, so they rotate and spin with it, and density follows the number of hits you leave but doesn't override your pattern placement.</p>
+<p>Click a petal or a leaf to flip one step. The machine stores your edits relative to the pattern, so they rotate and spin with it. Density follows the number of hits you leave, but it doesn't move the steps you placed.</p>
 </section>
 
 <section id="feel">
 <h2><span class="n">07</span>Feel</h2>
-<p>A pattern determines <i>which steps play</i>. Feel is a function of <i>how they play</i>. Almost all of the controls read a step's weight, so the meter shape has disproportionate impact on the performance of the pattern.</p>
-<h3>Accent</h3>
-<p><span class="ctl">Accent</span> sets how much weight decides loudness. At 0 every hit is equally loud. At 100% the downbeat is at full volume and the weakest step plays at 20%. This is what "humanizes" the pattern.</p>
+<p>A pattern decides <i>which steps play</i>. Feel is <i>how they play</i>. Almost every feel control reads a step's weight, so the shape of the meter has an outsized effect on how the pattern sounds.</p>
+<h3>Vel depth</h3>
+<p><span class="ctl">Vel depth</span> sets how much weight decides loudness. At 0 every hit is equally loud. At 100% the downbeat plays at full volume and the weakest step at 20%. Somewhere in between is where a pattern starts to sound played rather than programmed.</p>
 <figure>
   <div class="figs" style="--cols:3;--mcols:3">
-    <div class="cell"><canvas class="flower" data-name="feel-1a.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":0}'></canvas><div class="lab">accent 0</div></div>
-    <div class="cell"><canvas class="flower" data-name="feel-1b.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":0.5}'></canvas><div class="lab">accent 50%</div></div>
-    <div class="cell"><canvas class="flower" data-name="feel-1c.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":1}'></canvas><div class="lab">accent 100%</div></div>
+    <div class="cell"><canvas class="flower" data-name="feel-1a.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":0}'></canvas><div class="lab">vel depth 0</div></div>
+    <div class="cell"><canvas class="flower" data-name="feel-1b.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":0.5}'></canvas><div class="lab">vel depth 50%</div></div>
+    <div class="cell"><canvas class="flower" data-name="feel-1c.png" data-fig='{"type":"flower","steps":16,"density":0.75,"accent":1}'></canvas><div class="lab">vel depth 100%</div></div>
   </div>
-  <figcaption><b>Accent.</b> Fill brightness is loudness/velocity.</figcaption>
+  <figcaption><b>Vel depth.</b> Fill brightness is loudness.</figcaption>
 </figure>
 <h3>Chance and weak drop</h3>
-<p><span class="ctl">Chance</span> is the probability that a hit plays on any given pass. <span class="ctl">Weak drop</span> makes that probability depend on weight in particular, skipping lower priority/weighted notes instead of the downbeat (statistically). Playing with both of these parameters prevents a dense pattern from sounding like a loop (subtle variations throughout the cycles). In the flower, a petal filled partway represents the statistical likelihood of how often that step plays.</p>
+<p><span class="ctl">Chance</span> is the probability that a hit plays on any given pass. <span class="ctl">Weak drop</span> ties that probability to weight, so the low-weight steps drop out and the downbeat almost never does. Together they keep a dense pattern from sounding like a loop, because no two passes are quite the same. In the flower, a petal filled partway shows how often that step plays.</p>
 <figure>
   <div class="figs" style="--cols:3;--mcols:3">
     <div class="cell"><canvas class="flower" data-name="feel-2a.png" data-fig='{"type":"flower","steps":16,"density":0.75}'></canvas><div class="lab">always</div></div>
     <div class="cell"><canvas class="flower" data-name="feel-2b.png" data-fig='{"type":"flower","steps":16,"density":0.75,"chance":0.7}'></canvas><div class="lab">chance 70%</div></div>
     <div class="cell"><canvas class="flower" data-name="feel-2c.png" data-fig='{"type":"flower","steps":16,"density":0.75,"weakDrop":0.8}'></canvas><div class="lab">weak drop 80%</div></div>
   </div>
-  <figcaption><b>Probability as fill.</b> Chance shortens every fill equally, likelihood across the whole. Weak drop decreases probability of the lower ranked pedals in inverse proportionality.</figcaption>
+  <figcaption><b>Probability as fill.</b> Chance shortens every fill by the same amount. Weak drop shortens the low-weight petals the most.</figcaption>
 </figure>
-<h3>Ghost notes</h3>
-<p><span class="ctl">Ghost</span> gives every empty step a chance of a very quiet hit. Ghost notes are the soft strokes between the main ones that make a groove feel alive. Traditionally, hand drums play them as heel strokes. The flower shows them as short stubs in the empty petals. The weight of the pedal proportionally controls the volume of the ghost note, keeping with the underlying accent/emphasis schema.</p>
-<h3>Swing and jitter</h3>
-<p><span class="ctl">Swing</span> delays every second step, up to half a step. A small amount loosens straight sixteenths. Two thirds is a triplet shuffle and 100% is a dotted rhythm.</p>
-<p><span class="ctl">Jitter</span> moves each hit early or late by a <i>random</i> few milliseconds. <span class="ctl">Vel jitter</span> (velocity jitter) does the same for loudness.</p>
+<h3>Ghosts</h3>
+<p><span class="ctl">Ghosts</span> give every empty step a chance of a very quiet hit. Ghost notes are the soft strokes between the main ones that make a groove feel alive, and hand drummers play them as heel strokes. The flower shows them as short stubs in the empty petals. A ghost on a heavier petal plays a little louder, so ghosts follow the same accents as everything else.</p>
+<h3>Swing and timing</h3>
+<p><span class="ctl">Swing</span> delays every second step. A little loosens straight sixteenths, and about 67% is a triplet shuffle. The control stops at 70%.</p>
+<p><span class="ctl">Timing</span> moves each hit early or late by a <i>random</i> few milliseconds. <span class="ctl">Vel jitter</span> does the same for loudness.</p>
 <figure>
   <div class="figs" style="--cols:3;--mcols:3">
     <div class="cell"><canvas class="flower" data-name="feel-3a.png" data-fig='{"type":"flower","steps":16,"density":0.5,"ghost":0.6}'></canvas><div class="lab">ghost 60%</div></div>
@@ -378,25 +378,26 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
 <h2><span class="n">08</span>Motion</h2>
 <p>Motion controls change the rhythm while it plays, either inside a step or from one cycle to the next.</p>
 <h3>Ratchet</h3>
-<p>A <b>ratchet</b> splits one hit into several faster ones inside its step, each quieter than the last, creating a microrhythm. A ratchet is a new stratum of division that shows up for single step.  <span class="ctl">Ratchet chance</span> sets how often it happens, and <i>weak steps ratchet more than strong ones</i>, so rolls tend to lead into strong beats instead of undermining them.  <span class="ctl">Ratchet</span> sets how many repeats. 2 doubles the step and 3 turns it into a triplet.</p>
+<p>A <b>ratchet</b> splits one hit into several faster ones inside its step, each quieter than the last. It's a new stratum of division that shows up for a single step.</p>
+<p><span class="ctl">Ratchet</span> sets how often it happens, and <i>weak steps ratchet more than strong ones</i>, so rolls tend to lead into strong beats instead of covering them. <span class="ctl">Ratchet ×</span> sets how many repeats. 2 doubles the step and 3 turns it into a triplet.</p>
 <figure>
   <div class="figs" style="--cols:2;--mcols:1">
     <div class="cell"><canvas class="flower" style="max-width:220px;margin:0 auto" data-name="motion-1a.png" data-fig='{"type":"flower","steps":16,"density":0.5,"ratchets":{"2":2,"10":3,"14":3}}'></canvas><div class="lab">ratchets on three steps</div></div>
     <div class="cell"><canvas class="strip" style="--h:120px" data-name="motion-1b.png" data-fig='{"type":"strip","beats":4,"rows":[{"label":"plain","steps":16,"density":0.5},{"label":"ratchet","steps":16,"density":0.5,"ratchets":{"2":2,"10":3,"14":3}}]}'></canvas><div class="lab">the same bar in time</div></div>
   </div>
-  <figcaption><b>Ratchets.</b>  Each ratchet repeat is shorter and quieter than the one before.</figcaption>
+  <figcaption><b>Ratchets.</b> Each repeat is shorter and quieter than the one before.</figcaption>
 </figure>
 <h3>Spin</h3>
-<p><span class="ctl">Spin</span> rotates the pattern by a few steps at the end of every cycle. A pattern that spins moves through all its rotations and comes back, passing over different accents each time. Placing a spinning copy against the original produces Steve Reich-style <i>phasing</i>.</p>
+<p><span class="ctl">Spin</span> rotates the pattern by a few steps at the end of every cycle. A spinning pattern moves through all its rotations and comes back, passing over different accents each time. A spinning copy against the original gives Steve Reich's <i>phasing</i>.</p>
 <p>The Phase preset does this with the figure from <i>Clapping Music</i>.</p>
 <figure>
   <div class="figs" style="--cols:1;--mcols:1">
     <div class="cell"><canvas class="strip" style="--h:180px" data-name="motion-2.png" data-fig='{"type":"strip","beats":4,"rows":[{"label":"cycle 1","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx."},{"label":"cycle 2","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx.","rotation":1},{"label":"cycle 3","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx.","rotation":2},{"label":"cycle 4","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx.","rotation":3},{"label":"cycle 5","steps":12,"factors":[2,2,3],"pattern":"xxx.xx.x.xx.","rotation":4}]}'></canvas></div>
   </div>
-  <figcaption><b>Spin +1 for five cycles.</b> The Clapping Music figure moves one step later each cycle. The meter stays put, so the loudness of each hit changes as it moves.</figcaption>
+  <figcaption><b>Spin +1 for five cycles.</b> The Clapping Music figure moves one step later each cycle. The meter stays put, so each hit's loudness changes as it moves.</figcaption>
 </figure>
 <h3>Drift</h3>
-<p><span class="ctl">Drift</span> lets a rhythm wander. Every few cycles it nudges density up or down, sometimes rotates a step, and sometimes reorders its strata.  With <span class="ctl">Drift steps</span> on it can also change its grid or step count. <span class="ctl">Drift every</span> in the global settings (header) sets how often drift occurs.</p>
+<p><span class="ctl">Drift</span> lets a rhythm wander. Every few cycles it nudges density up or down, sometimes rotates a step, and sometimes reorders its strata. With <span class="ctl">Drift steps</span> on, it can also change its grid or step count. <span class="ctl">Drift</span> in the header sets how many cycles pass between moves.</p>
 <figure>
   <div class="figs" style="--cols:5;--mcols:5">
     <div class="cell"><canvas class="flower" data-name="motion-3a.png" data-fig='{"type":"flower","steps":12,"factors":[2,2,3],"density":0.42}'></canvas><div class="lab">start</div></div>
@@ -405,19 +406,19 @@ footer{color:var(--faint);font:300 12px/1.8 var(--sans);margin-top:60px}
     <div class="cell"><canvas class="flower" data-name="motion-3d.png" data-fig='{"type":"flower","steps":12,"factors":[3,2,2],"density":0.5,"rotation":1}'></canvas><div class="lab">strata 3·2·2</div></div>
     <div class="cell"><canvas class="flower" data-name="motion-3e.png" data-fig='{"type":"flower","steps":12,"factors":[3,2,2],"density":0.34,"rotation":1}'></canvas><div class="lab">sparser</div></div>
   </div>
-  <figcaption><b>Four drift moves.</b> A single rhythm wandering over several drift points.</figcaption>
+  <figcaption><b>Four drift moves.</b> One rhythm wandering over several drift points.</figcaption>
 </figure>
-<p><span class="ctl">Mutate</span> is all of drift at once. It picks new strata, density and rotation, and sometimes a new mode or lock. <kbd>M</kbd> mutates everything and <kbd>⇧Q</kbd>–<kbd>⇧I</kbd> mutates one rhythm in isolation (good for performance/play).</p>
+<p><span class="ctl">Mutate</span> is all of drift at once. It picks new strata, density and rotation, and sometimes a new mode or lock. <kbd>M</kbd> mutates everything, and <kbd>⇧Q</kbd> to <kbd>⇧I</kbd> mutate one rhythm, which is handy when playing live.</p>
 </section>
 
 <section id="sound-from-weight">
 <h2><span class="n">09</span>Sound from weight</h2>
-<p>Instruments are separate from rhythms. Any rhythm can play any instrument (see instrument rack at the bottom).</p>
-<p>Some instrument controls also read the weight of the step being played:</p>
+<p>Instruments are separate from rhythms, and any rhythm can play any instrument. The instruments sit below the rhythms.</p>
+<p>Some instrument controls also read the weight of the step being played.</p>
 <ul>
-  <li><b>Strokes.</b> Conga, bongo and hat change how they're struck. Strong steps play open, middle steps muted and weak steps slapped, so one pattern gets the tonal range of a hand drummer.</li>
-  <li><b>Pitch from weight.</b> The pitch moves away from the base note as weight drops, snapped to a scale. Strong steps sit on the root while weak steps move away. Melody follows meter!</li>
-  <li><b>Pitch from velocity, step or chance.</b> Loudness, position in the cycle, or a random number, all drive the velocity mapping.</li>
+  <li><b>Strokes.</b> Conga, bongo and hat change how they're struck. Strong steps play open, middle steps muted and weak steps slapped, so one pattern gets a hand drummer's range of tones.</li>
+  <li><b>Pitch from weight.</b> The pitch moves away from the base note as weight drops, snapped to a scale. Strong steps sit on the root and weak steps wander, so the melody follows the meter.</li>
+  <li><b>Pitch from velocity, step or random.</b> Loudness, position in the cycle, or a random number moves the pitch instead.</li>
 </ul>
 </section>
 <!-- /content -->
