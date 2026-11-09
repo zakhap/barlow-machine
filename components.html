@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarence components</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+/* Proposed style. Same tokens as index.html, plus --panel2 for title bars, --box for value fields and one accent.
+   Rules: 1px lines, square corners, a 4px grid, caps only for section names, sentence case everywhere else. */
+:root{
+  --bg:#131312; --body:#191918; --panel:#1d1d1c; --panel2:#242423; --well:#161615; --box:#141413;
+  --rule:#2a2a28; --rule2:#383835; --rule3:#4a4a46;
+  --ink:#ecebe6; --ink2:#bab9b3; --dim:#7a7974; --faint:#4b4a46;
+  --v0:#f2f1ec; --v1:#c9c7c0; --v2:#a3a19a; --v3:#ded5c4; --v4:#bcc2c7;
+  --acc:var(--ink); --onacc:var(--bg);
+  --sans:"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+body.amber{--acc:#f0a830; --onacc:#1a1406}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 12px/1.4 var(--sans);-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+
+/* ---------- sheet chrome (not part of the proposal) ---------- */
+.sheet{max-width:1180px;margin:0 auto;padding:32px 24px 96px}
+.sheet > header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:40px}
+.sheet h1{margin:0;font:500 18px var(--sans)}
+.sheet .lede{margin:6px 0 0;color:var(--dim);max-width:640px;line-height:1.6}
+.spec{margin:56px 0 0}
+.spec > h2{display:flex;align-items:center;gap:12px;margin:0 0 6px;font:500 13px var(--sans);color:var(--ink)}
+.spec > h2::after{content:"";flex:1;height:1px;background:var(--rule2)}
+.spec > p{margin:0 0 20px;color:var(--dim);max-width:720px;line-height:1.6}
+.board{display:flex;flex-wrap:wrap;gap:32px 48px;align-items:flex-start}
+.item{display:flex;flex-direction:column;gap:10px}
+.note{color:var(--faint);font:400 10.5px var(--mono)}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.vs > div > .note{margin-bottom:10px}
+
+/* ---------- section label: name + rule, like Ableton's preference groups ---------- */
+.sect{display:flex;align-items:center;gap:10px;font:500 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.sect::after{content:"";flex:1;height:1px;background:var(--rule)}
+.sect.bare::after{display:none}
+
+/* ---------- buttons ---------- */
+.b{height:22px;padding:0 10px;display:inline-grid;place-items:center;background:var(--panel2);border:1px solid var(--rule3);border-radius:0;color:var(--ink2);font:400 11px var(--sans);cursor:pointer;white-space:nowrap}
+.b:hover{color:var(--ink);border-color:var(--dim)}
+.b.on{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
+.b:disabled{opacity:.35;cursor:default}
+.b.sq{width:22px;padding:0;font:500 10px var(--mono)}
+.b.sq svg{display:block}
+:focus{outline:none}
+:focus-visible{outline:1px solid var(--acc);outline-offset:1px}
+.b.ghost{background:transparent}
+.b.pill{border-radius:11px}
+.b.big{height:28px;padding:0 14px}
+.tog{width:44px}
+
+/* segmented: one box, cells split by 1px rules */
+.seg{display:inline-flex;border:1px solid var(--rule3);background:var(--rule3);gap:1px}
+.seg button{height:20px;padding:0 9px;border:0;background:var(--panel2);color:var(--dim);font:400 11px var(--sans);cursor:pointer}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--acc);color:var(--onacc)}
+
+/* ---------- value box: the one control for every number ---------- */
+/* Label left, a fixed-width field right. Drag up/down, double-click resets. Lit when it differs from the default. */
+.p{display:grid;grid-template-columns:minmax(0,1fr) 76px;align-items:center;gap:8px;height:22px;user-select:none}
+.p .l{color:var(--dim);font:400 11.5px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v{position:relative;height:18px;border:1px solid var(--rule2);background:var(--box);color:var(--faint);font:400 11px/16px var(--mono);text-align:right;padding:0 5px;cursor:ns-resize;overflow:hidden;touch-action:none}
+.v i{position:absolute;left:0;top:0;bottom:0;background:var(--rule);pointer-events:none}
+.v span{position:relative}
+.fill .v i{display:block}
+.v i{display:none}
+.p.lit .v{color:var(--ink);border-color:var(--rule3)}
+.p.lit .l{color:var(--ink2)}
+.fill .p.lit .v i{background:#33332f}
+body.amber .fill .p.lit .v i{background:#4a3a1c}
+.p:hover .v{border-color:var(--dim)}
+.p:hover .l{color:var(--ink)}
+.p.drag .v{border-color:var(--acc);color:var(--ink)}
+.p.seg-row{grid-template-columns:auto auto;justify-content:space-between}
+.p.seg-row .l{overflow:visible}
+
+/* popover: a click without a drag opens it. The value itself is the input; Enter or clicking away applies it. */
+.pop{position:absolute;z-index:50;width:188px;background:var(--panel2);border:1px solid var(--rule3);box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.pop .ph{display:flex;justify-content:space-between;align-items:center;height:24px;padding:0 8px;border-bottom:1px solid var(--rule2);font:500 9.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.pop .ph button{border:0;background:none;color:var(--faint);cursor:pointer;font:400 10.5px var(--sans);letter-spacing:0;text-transform:none;padding:0}
+.pop .ph button:hover{color:var(--ink)}
+.pop .pb{padding:10px 8px 8px;display:flex;flex-direction:column;gap:8px}
+.pop .ed{display:flex;align-items:baseline;gap:4px;height:26px;padding:0 6px;background:var(--box);border:1px solid var(--rule3);cursor:text}
+.pop .ed:focus-within{border-color:var(--acc)}
+.pop .ed input{flex:1;min-width:0;width:0;border:0;background:none;padding:0;color:var(--ink);font:400 14px/24px var(--mono);text-align:right;outline:none;-moz-appearance:textfield}
+.pop .ed input::-webkit-inner-spin-button,.pop .ed input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.pop .ed input::selection{background:var(--ink);color:var(--bg)}
+.pop .ed .u{color:var(--dim);font:400 11px var(--mono);white-space:nowrap}
+.pop input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;margin:0;background:none;cursor:pointer}
+.pop input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(var(--ink2),var(--ink2)) 0/var(--f) 100% no-repeat,var(--rule3)}
+.pop input[type=range]::-moz-range-track{height:2px;background:var(--rule3)}
+.pop input[type=range]::-moz-range-progress{height:2px;background:var(--ink2)}
+.pop input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:6px;height:12px;margin-top:-5px;background:var(--ink);border:0;border-radius:0}
+.pop input[type=range]::-moz-range-thumb{width:6px;height:12px;background:var(--ink);border:0;border-radius:0}
+.pop input[type=range]:hover::-webkit-slider-thumb{background:#fff}
+.pop .rng{color:var(--faint);font:400 9.5px var(--mono);display:flex;justify-content:space-between;margin-top:-4px}
+
+/* stacked variant for the header: caption over a box */
+.pc{display:flex;flex-direction:column;gap:4px;user-select:none}
+.pc .l{font:500 9.5px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.pc .v{width:76px;height:22px;line-height:20px;text-align:left}
+.pc.lit .v{color:var(--ink);border-color:var(--rule3)}
+
+/* stepper */
+.stp{display:inline-flex;border:1px solid var(--rule3);background:var(--rule3);gap:1px;height:22px}
+.stp button{width:22px;border:0;background:var(--panel2);color:var(--ink2);cursor:pointer;font:400 13px/1 var(--sans)}
+.stp button:hover{color:var(--ink)}
+.stp output{min-width:32px;display:grid;place-items:center;background:var(--box);font:400 11px var(--mono)}
+
+/* select */
+.sel{position:relative;display:inline-block}
+.sel select{appearance:none;-webkit-appearance:none;height:22px;padding:0 24px 0 7px;background:var(--panel2);border:1px solid var(--rule3);border-radius:0;color:var(--ink2);font:400 11px var(--sans);cursor:pointer;min-width:150px}
+.sel::after{content:"";position:absolute;right:8px;top:9px;border:4px solid transparent;border-top:5px solid var(--dim);pointer-events:none}
+.sel select:hover{border-color:var(--dim);color:var(--ink)}
+
+/* steps: one square cell per step, split by 1px rules; height follows weight */
+.steps{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);height:22px;min-width:0}
+.steps.bar4 > b:nth-child(4n+1){box-shadow:inset 1px 0 0 var(--rule3)}
+.steps b{position:relative;background:var(--box);cursor:pointer}
+.steps b::after{content:"";position:absolute;left:3px;right:3px;bottom:3px;height:calc(var(--w) * 14px + 2px);background:var(--faint)}
+.steps b.hit::after{background:var(--vc,var(--ink))}
+.steps b.flip{outline:1px solid var(--acc);outline-offset:-1px}
+.steps b.now{background:#262624}
+.steps b:hover::after{background:var(--dim)}
+.steps b.hit:hover::after{background:#fff}
+
+/* strata chips as a segmented row */
+.strata .seg button{font:400 10.5px var(--mono)}
+.hint{color:var(--faint);font:400 10.5px/1.45 var(--sans)}
+
+/* ---------- device: a rhythm or an instrument ---------- */
+.dev{--vc:var(--v0);background:var(--panel);border:1px solid var(--rule2);min-width:0}
+.tbar{display:flex;align-items:center;gap:10px;height:30px;padding:0 6px 0 0;background:var(--panel2);border-bottom:1px solid var(--rule2);position:relative}
+.tbar .tab{width:3px;align-self:stretch;background:var(--vc)}
+.tbar .fold{width:20px;height:20px;border:0;background:none;color:var(--dim);cursor:pointer;font:400 10px var(--sans);transition:transform .1s}
+.dev.folded .fold{transform:rotate(-90deg)}
+.tbar .id{font:500 10.5px var(--mono);color:var(--dim)}
+.tbar .name{font:500 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--vc)}
+.tbar .read{flex:1;text-align:right;color:var(--faint);font:400 10.5px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:4px}
+.tbar .ms{display:flex;gap:4px}
+.plays{display:flex;gap:2px}
+.plays button{width:18px;height:18px;padding:0;border:1px solid var(--rule3);background:transparent;color:var(--faint);font:400 9.5px var(--mono);cursor:pointer}
+.plays button.on{background:var(--vc);border-color:var(--vc);color:var(--bg)}
+.plays button:hover{color:var(--ink)}
+
+/* body: columns split by 1px rules (the grid gap shows the rule colour through) */
+.dgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 172px;gap:1px;background:var(--rule)}
+.dgrid > div{background:var(--panel);padding:10px 12px 12px}
+.dgrid .sect{margin-bottom:8px}
+.dgrid .fanc{display:grid;place-items:center;padding:10px}
+.dfoot{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1px;background:var(--rule);border-top:1px solid var(--rule)}
+.dfoot > div{background:var(--panel);padding:10px 12px;display:flex;align-items:center;gap:10px;min-width:0}
+canvas.fan{width:148px;height:148px;display:block}
+canvas.tree{width:100%;height:72px;display:block}
+
+/* folded: one row inside the title bar's height plus a strip */
+.dev.folded .dgrid,.dev.folded .dfoot{display:none}
+.mini{display:none;grid-template-columns:minmax(160px,1fr) auto;gap:1px;background:var(--rule)}
+.mini > div{background:var(--panel);padding:6px 10px;display:flex;align-items:center;gap:12px;min-width:0}
+.dev.folded .mini{display:grid}
+.mini .levers{display:flex;gap:12px}
+.mini .levers .p{grid-template-columns:auto 52px}
+.mods{grid-column:1/-1;color:var(--faint);font:400 10.5px var(--mono)}
+.mods b{font-weight:400;color:var(--ink2)}
+
+/* instruments: devices in a 2-up grid sharing rules */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule2);border:1px solid var(--rule2)}
+.igrid .dev{border:0}
+.igrid .dgrid{grid-template-columns:1fr 1fr}
+
+/* patch: a true grid of cells */
+.patch{display:grid;grid-template-columns:40px repeat(5,44px);gap:1px;background:var(--rule);border:1px solid var(--rule);width:max-content}
+.patch > *{background:var(--panel);height:26px;display:grid;place-items:center;font:400 10.5px var(--mono);color:var(--dim)}
+.patch .h{background:var(--panel2);font:500 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase}
+.patch button{border:0;cursor:pointer;position:relative}
+.patch button::after{content:"";width:4px;height:4px;background:var(--faint)}
+.patch button.on::after{width:10px;height:10px;background:var(--vc)}
+.patch button:hover{background:var(--panel2)}
+
+/* header bar */
+.top{display:flex;flex-wrap:wrap;align-items:stretch;background:var(--body);border:1px solid var(--rule2)}
+.top .pc .v{width:60px}
+.top > .cell{display:flex;align-items:flex-end;gap:6px;padding:8px 10px;border-right:1px solid var(--rule)}
+.top > .cell:last-child{border-right:0;margin-left:auto}
+.top > .cell:nth-last-child(2){border-right:0}
+.top .brand{align-items:center;gap:8px;font:500 11px var(--sans);letter-spacing:.14em;text-transform:uppercase}
+.playb{width:30px;height:30px;border:1px solid var(--rule3);background:var(--panel2);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+.playb.on{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
+.scenes{display:grid;grid-template-columns:repeat(8,22px);gap:1px;background:var(--rule3);border:1px solid var(--rule3)}
+.scenes button{height:20px;border:0;background:var(--panel2);color:var(--faint);font:400 10px var(--mono);cursor:pointer;padding:0}
+.scenes button.full{color:var(--ink2)}
+.scenes button.on{background:var(--acc);color:var(--onacc)}
+
+/* swatches + type */
+.sw{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.sw div{background:var(--c);height:64px;padding:6px;display:flex;flex-direction:column;justify-content:flex-end;font:400 10px var(--mono);color:var(--t,var(--dim))}
+.type > div{display:grid;grid-template-columns:180px 1fr;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--rule)}
+
+@media (max-width:860px){
+  .dgrid{grid-template-columns:1fr}
+  .igrid,.vs{grid-template-columns:1fr}
+  .top{flex-wrap:wrap}
+  .sw{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header>
+  <div>
+    <h1>Clarence components</h1>
+    <p class="lede">The proposed style for everything except the Bloom. Square boxes with 1px lines, columns that share a rule instead of floating, one value box for every number, and segmented switches for every short list. Drag any value box to adjust it, click it to type a number, double-click to reset. Switches and steps click.</p>
+  </div>
+  <div class="item"><span class="note">accent for "on"</span>
+    <div class="seg" id="accent" data-seg><button class="on" data-a="">Mono</button><button data-a="amber">Amber</button></div>
+  </div>
+</header>
+
+<section class="spec">
+  <h2>1 · Tokens</h2>
+  <p>The current palette stays. Two additions: <code>--panel2</code> for title bars and buttons, so they read as raised, and <code>--box</code>, a near-black for value fields, so they read as inset. Spacing on a 4px grid.</p>
+  <div class="sw">
+    <div style="--c:var(--bg)">bg<br>#131312</div>
+    <div style="--c:var(--box)">box<br>#141413</div>
+    <div style="--c:var(--body)">body<br>#191918</div>
+    <div style="--c:var(--panel)">panel<br>#1d1d1c</div>
+    <div style="--c:var(--panel2)">panel2<br>#242423</div>
+    <div style="--c:var(--rule2)">rule2<br>#383835</div>
+    <div style="--c:var(--ink2);--t:var(--bg)">ink2<br>#bab9b3</div>
+    <div style="--c:var(--acc);--t:var(--onacc)">accent<br>on state</div>
+  </div>
+  <div class="type" style="margin-top:20px">
+    <div><span class="note">section · 9.5 caps</span><span class="sect bare">Pattern</span></div>
+    <div><span class="note">label · 11.5 sans</span><span style="color:var(--dim);font-size:11.5px">Density</span></div>
+    <div><span class="note">value · 11 mono</span><span style="font:400 11px var(--mono)">4 / 16</span></div>
+    <div><span class="note">button · 11 sans</span><span style="font-size:11px;color:var(--ink2)">Mutate</span></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>2 · Buttons and switches</h2>
+  <p>Buttons drop the letter-spaced caps and go to sentence case, which is most of what reads as "designed by default" now. On is a filled box. Pills only for one-shot actions, like Ableton's Rescan and Browse.</p>
+  <div class="board">
+    <div class="item"><span class="note">action</span><div class="row" style="display:flex;gap:4px"><button class="b">Mutate</button><button class="b">Clear</button><button class="b">Save</button><button class="b" disabled>Redo</button></div></div>
+    <div class="item"><span class="note">one-shot</span><div style="display:flex;gap:4px"><button class="b pill">Copy link</button><button class="b pill">Bounce</button></div></div>
+    <div class="item"><span class="note">toggle</span><div style="display:flex;gap:4px"><button class="b tog on" data-tog>On</button><button class="b tog" data-tog>Off</button></div></div>
+    <div class="item"><span class="note">mute / solo / dice</span><div style="display:flex;gap:4px"><button class="b sq" data-tog>M</button><button class="b sq on" data-tog>S</button><button class="b sq" title="Mutate this rhythm"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect x=".5" y=".5" width="11" height="11" rx="2" fill="none" stroke="currentColor"/><g fill="currentColor"><circle cx="3.5" cy="3.5" r="1.1"/><circle cx="8.5" cy="3.5" r="1.1"/><circle cx="6" cy="6" r="1.1"/><circle cx="3.5" cy="8.5" r="1.1"/><circle cx="8.5" cy="8.5" r="1.1"/></g></svg></button></div></div>
+    <div class="item"><span class="note">segmented</span><div class="seg" data-seg><button class="on">Barlow</button><button>Euclid</button></div></div>
+    <div class="item"><span class="note">segmented, 3</span><div class="seg" data-seg><button>Free</button><button class="on">Avoid</button><button>Join</button></div></div>
+    <div class="item"><span class="note">stepper</span><div class="stp" data-stp><button>−</button><output>5</output><button>+</button></div></div>
+    <div class="item"><span class="note">list</span><div class="sel"><select><option>Cascara crossfire</option><option>Hemiola</option></select></div></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>3 · Value box</h2>
+  <p>Every number becomes a label and a fixed-width box, so values line up in a column and you can see what's draggable. Grey text means default, white means changed. Two options: a plain box, or a box with a faint fill showing where the value sits in its range.</p>
+  <div class="vs">
+    <div><div class="note">A · plain</div><div class="col" data-params style="max-width:240px"></div></div>
+    <div class="fill"><div class="note">B · with fill</div><div class="col" data-params style="max-width:240px"></div></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>4 · Steps</h2>
+  <p>The folded row's step strip as cells. Bar height is the step's weight, a filled bar is a hit, an outline is a flipped step. Beats get a slightly brighter rule.</p>
+  <div class="board" style="display:block">
+    <div class="steps bar4" id="demoSteps" style="max-width:520px"></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>5 · Rhythm</h2>
+  <p>A rhythm becomes a device: a raised title bar, then columns that share 1px rules, the fan in its own cell, and the strata and tree in a footer row. Fold it with the chevron. The folded row keeps the strip, the three main levers and a list of what's changed. R1 is in Euclid mode. There the meter doesn't pick hits, so the tree gives way to a loudness row: each step's weight as an outline, each hit filled to its velocity, and brackets for the even spacing. Drag Vel depth to flatten or sharpen the accents. Switch Mode, or drag Density and Rotate, to compare.</p>
+  <div class="col" style="display:flex;flex-direction:column;gap:8px;max-width:820px">
+    <div class="dev" id="rhy1" style="--vc:var(--v0)"></div>
+    <div class="dev folded" id="rhy2" style="--vc:var(--v3)"></div>
+  </div>
+</section>
+
+<section class="spec">
+  <h2>6 · Instruments and patch</h2>
+  <p>Instruments use the same device shell. In the grid, cards share their borders. The patch is a real grid of cells.</p>
+  <div class="igrid" style="max-width:820px" id="insts"></div>
+  <div style="margin-top:24px"><div class="patch" id="patch"></div></div>
+</section>
+
+<section class="spec">
+  <h2>7 · Header</h2>
+  <p>The header as one bar of boxed cells, like Ableton's control bar. Each group gets its own cell and a caption over a value box.</p>
+  <div class="top">
+    <div class="cell brand"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="none" stroke="#ecebe6"/><line x1="9" y1="9" x2="9" y2="2.5" stroke="#ecebe6" stroke-width="1.4" stroke-linecap="round"/></svg>Clarence</div>
+    <div class="cell"><button class="playb" data-tog>▶</button><div class="pc lit" data-pc="Tempo|112|40|240|1| bpm"></div><div class="pc" data-pc="Cycle|4|1|16|1| beats"></div></div>
+    <div class="cell"><div class="pc" data-pc="Energy|50|0|100|1|%"></div><div class="pc" data-pc="Drive|25|0|100|1|%"></div></div>
+    <div class="cell"><div class="pc"><span class="l">Scenes</span><div class="scenes"><button class="full on">1</button><button class="full">2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button></div></div></div>
+    <div class="cell"><div class="pc"><span class="l">Preset</span><div style="display:flex;gap:4px"><div class="sel"><select><option>Cascara crossfire</option></select></div><button class="b">Mutate</button><button class="b">Clear</button></div></div></div>
+    <div class="cell"><div style="display:flex;gap:4px"><button class="b on" data-tog>Synth</button><button class="b" data-tog>MIDI</button><button class="b ghost">About</button></div></div>
+  </div>
+</section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+// Barlow ranks for 2·2·2·2, as in the app's tree: higher = more indispensable
+const RANK16 = [15,0,8,4,12,2,10,6,14,1,9,5,13,3,11,7];
+
+// a value box: drag up/down, shift for fine, double-click to reset
+function param(host, { label, val, min, max, step = 1, def = val, fmt = v => v, stacked = false, on }) {
+  const el = document.createElement("div");
+  el.className = stacked ? "pc" : "p";
+  el.innerHTML = `<span class="l">${label}</span><div class="v"><i></i><span></span></div>`;
+  const box = el.querySelector(".v"), txt = box.querySelector("span"), bar = box.querySelector("i");
+  const draw = () => { txt.textContent = fmt(val); bar.style.width = ((val - min) / (max - min) * 100) + "%"; el.classList.toggle("lit", val !== def); };
+  const set = v => { const nv = Math.min(max, Math.max(min, Math.round(v / step) * step)); if (nv === val) return; val = nv; draw(); on?.(val); };
+  box.onpointerdown = e => {
+    box.setPointerCapture(e.pointerId); el.classList.add("drag");
+    const y0 = e.clientY, v0 = val; let moved = false;
+    box.onpointermove = m => { if (Math.abs(y0 - m.clientY) > 3) moved = true; if (moved) set(v0 + (y0 - m.clientY) / (m.shiftKey ? 8 : 2) * step); };
+    box.onpointerup = () => { box.onpointermove = null; el.classList.remove("drag"); if (!moved) openPop(box, { label, min, max, step, fmt, get: () => val, set, reset: () => set(def) }); };
+  };
+  box.ondblclick = () => { closePop(); set(def); };
+  draw(); host.append(el); return el;
+}
+const pct = v => v + "%";
+const PATTERN = [
+  { label: "Steps", val: 16, min: 1, max: 64, def: 16, fmt: v => v },
+  { label: "Grid", val: 4, min: 1, max: 8, def: 4, fmt: v => v + " / beat" },
+  { label: "Length", val: 4, min: 1, max: 16, def: 4, fmt: v => v + " beats" },
+  { label: "Density", val: 4, min: 0, max: 16, def: 6, fmt: v => v + " / 16" },
+  { label: "Rotate", val: 0, min: 0, max: 15, def: 0 },
+];
+const FEEL = [
+  { label: "Vel depth", val: 40, min: 0, max: 100, def: 70, fmt: pct },
+  { label: "Chance", val: 100, min: 0, max: 100, def: 100, fmt: pct },
+  { label: "Ghosts", val: 0, min: 0, max: 100, def: 0, fmt: pct },
+  { label: "Swing", val: 0, min: 0, max: 100, def: 0, fmt: pct },
+  { label: "Timing", val: 0, min: 0, max: 30, def: 0, fmt: v => "±" + v + "ms" },
+];
+const MOTION = [
+  { label: "Spin", val: 0, min: -8, max: 8, def: 0, fmt: v => (v > 0 ? "+" : "") + v + "/cyc" },
+  { label: "Ratchet", val: 0, min: 0, max: 100, def: 0, fmt: pct },
+  { label: "Vel jitter", val: 15, min: 0, max: 100, def: 15, fmt: pct },
+  { label: "Drift", val: 0, min: 0, max: 100, def: 0, fmt: pct },
+];
+
+// section 3: the same rows twice
+$$("[data-params]").forEach(h => [...PATTERN.slice(0, 4), FEEL[0], MOTION[0]].forEach(p => param(h, { ...p })));
+
+// header captions
+$$("[data-pc]").forEach(h => {
+  const [label, val, min, max, step, unit] = h.dataset.pc.split("|");
+  const el = param(document.createElement("div"), { label, val: +val, min: +min, max: +max, step: +step, def: label === "Tempo" ? 96 : +val, fmt: v => v + unit, stacked: true });
+  h.replaceWith(el);
+});
+
+// Which steps play. Barlow takes the k most indispensable steps of the rotated meter; Euclid spreads k hits evenly (same formula as the app).
+const mod = (a, n) => ((a % n) + n) % n;
+function pattern({ k, rot = 0, mode = "barlow", N = 16 }) {
+  if (mode === "euclid") return [...Array(N).keys()].map(i => (mod(i - rot, N) * k) % N < k);
+  const order = [...Array(N).keys()].sort((a, b) => RANK16[mod(b - rot, N)] - RANK16[mod(a - rot, N)]);
+  const on = Array(N).fill(false); order.slice(0, k).forEach(i => (on[i] = true)); return on;
+}
+// gaps between hits, from each hit to the next one round the cycle
+function gaps(active) {
+  const H = active.flatMap((on, i) => (on ? [i] : [])), N = active.length;
+  return H.map((h, j) => ({ start: h, len: j + 1 < H.length ? H[j + 1] - h : N - h + H[0] }));
+}
+
+// steps
+function steps(host, active, flips = []) {
+  host.innerHTML = "";
+  RANK16.forEach((r, i) => {
+    const b = document.createElement("b");
+    b.style.setProperty("--w", (r + 1) / 16);
+    const hit = active[i] !== flips.includes(i);
+    b.className = (hit ? "hit" : "") + (flips.includes(i) ? " flip" : "");
+    b.onclick = () => { b.classList.toggle("hit"); b.classList.toggle("flip"); };
+    host.append(b);
+  });
+}
+steps($("#demoSteps"), pattern({ k: 6 }), [3]);
+let now = 0;
+setInterval(() => { $$(".steps").forEach(s => { [...s.children].forEach((c, i) => c.classList.toggle("now", i === now)); }); now = (now + 1) % 16; }, 140);
+
+// fan: one petal per step, length by weight, filled when it plays
+function fan(cv, active, color) {
+  const d = 2, W = 148; cv.width = cv.height = W * d;
+  const g = cv.getContext("2d"); g.scale(d, d);
+  const cx = W / 2, r0 = 20, r1 = 70, N = 16;
+  g.fillStyle = "#161615"; g.beginPath(); g.arc(cx, cx, 72, 0, 7); g.fill();
+  g.strokeStyle = "#2a2a28"; g.stroke();
+  RANK16.forEach((r, i) => {
+    const a0 = -Math.PI / 2 + (i / N) * Math.PI * 2 + 0.03, a1 = a0 + (Math.PI * 2) / N - 0.06;
+    const rr = r0 + 8 + (r / 15) * (r1 - r0 - 8);
+    g.beginPath(); g.arc(cx, cx, rr, a0, a1); g.arc(cx, cx, r0, a1, a0, true); g.closePath();
+    if (active[i]) { g.fillStyle = color; g.fill(); } else { g.strokeStyle = "#383835"; g.stroke(); }
+  });
+  g.fillStyle = "#1d1d1c"; g.beginPath(); g.arc(cx, cx, r0 - 2, 0, 7); g.fill();
+  g.fillStyle = "#ecebe6"; g.font = "400 11px 'IBM Plex Mono'"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(active.filter(Boolean).length + "/16", cx, cx);
+}
+// tree: binary splits down to 16 leaves. In Euclid mode the meter still sets each hit's weight,
+// so the tree stays (a little dimmer) and the hits' spacing is drawn as brackets under the leaves.
+function tree(cv, active, euclid, acc = 0.7) {
+  const d = 2, W = cv.clientWidth || 600, H = euclid ? 92 : 72; cv.style.height = H + "px"; cv.width = W * d; cv.height = H * d;
+  const g = cv.getContext("2d"); g.scale(d, d);
+  const cell = (W - 24) / 16, lx = i => 12 + (i + 0.5) * cell;
+  if (euclid) return accents(g, W, cell, lx, active, acc);
+  g.strokeStyle = "#4b4a46"; g.lineWidth = 1;
+  const node = (lo, hi, depth) => {
+    const x = (lx(lo) + lx(hi - 1)) / 2, y = 6 + depth * 12;
+    if (hi - lo === 1) return [x, y];
+    const m = (lo + hi) / 2, a = node(lo, m, depth + 1), b = node(m, hi, depth + 1);
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(x, y); g.lineTo(b[0], b[1]); g.stroke();
+    return [x, y];
+  };
+  node(0, 16, 0);
+  g.strokeStyle = "#4b4a46";
+  RANK16.forEach((r, i) => {
+    g.beginPath(); g.arc(lx(i), 54, active[i] ? 3.5 : 2.5, 0, 7);
+    if (active[i]) { g.fillStyle = "#ecebe6"; g.fill(); } else { g.fillStyle = "#1d1d1c"; g.fill(); g.stroke(); }
+    g.fillStyle = "#4b4a46"; g.font = "400 9px 'IBM Plex Mono'"; g.textAlign = "center"; g.fillText(r, lx(i), 68);
+  });
+}
+// Euclid: the meter no longer picks the hits, it only sets how loud each one is.
+// Every step shows its weight as a faint outline; a hit fills to its velocity (weight scaled by Vel depth).
+// Brackets underneath show the even spacing.
+function accents(g, W, cell, lx, active, acc) {
+  const base = 62, top = 10, h = base - top, bw = Math.min(14, cell * 0.5);
+  RANK16.forEach((r, i) => {
+    const w = r / 15, vel = (1 - acc) + acc * (0.2 + 0.8 * w), x = lx(i) - bw / 2;
+    g.strokeStyle = "#383835"; g.lineWidth = 1; g.strokeRect(x + 0.5, base - h * (0.12 + 0.88 * w) + 0.5, bw - 1, h * (0.12 + 0.88 * w) - 1);
+    if (active[i]) { g.fillStyle = "#ecebe6"; g.fillRect(x, base - h * vel, bw, h * vel); g.fillStyle = "#7a7974"; g.font = "400 9px 'IBM Plex Mono'"; g.textAlign = "center"; g.fillText(Math.round(vel * 100), lx(i), top - 2); }
+  });
+  g.fillStyle = "#2a2a28"; g.fillRect(12, base, W - 24, 1);
+  const y = 72, lab = 86, piece = (a, b, tickA, tickB) => {
+    const x0 = lx(a) - cell * 0.42, x1 = lx(b) + cell * 0.42;
+    g.beginPath(); g.moveTo(x0, tickA ? y - 4 : y); g.lineTo(x0, y); g.lineTo(x1, y); g.lineTo(x1, tickB ? y - 4 : y); g.stroke();
+    return (x0 + x1) / 2;
+  };
+  g.strokeStyle = "#7a7974"; g.fillStyle = "#bab9b3"; g.font = "400 10px 'IBM Plex Mono'"; g.textAlign = "center";
+  for (const { start, len } of gaps(active)) {
+    const end = start + len - 1;
+    if (end < 16) g.fillText(len, piece(start, end, true, true), lab);
+    else {
+      const m1 = piece(start, 15, true, false), m2 = piece(0, end - 16, false, true);
+      g.fillText(len, 16 - start >= end - 15 ? m1 : m2, lab);
+    }
+  }
+}
+
+let pop = null;
+function closePop() { pop?.remove(); pop = null; }
+function openPop(anchor, o) {
+  closePop();
+  pop = document.createElement("div"); pop.className = "pop";
+  pop.innerHTML = `<div class="ph"><span>${o.label}</span><button>Reset</button></div>
+    <div class="pb"><label class="ed"><input type="number" min="${o.min}" max="${o.max}" step="${o.step}"><span class="u"></span></label>
+    <input type="range" min="${o.min}" max="${o.max}" step="${o.step}">
+    <div class="rng"><span>${o.fmt(o.min)}</span><span>${o.fmt(o.max)}</span></div></div>`;
+  const rng = pop.querySelector("[type=range]"), num = pop.querySelector("[type=number]"), unit = pop.querySelector(".u");
+  // the unit is whatever the formatted value adds after the number ("%", " / 16", " beats"); if the number isn't in it (a note name), show the whole thing
+  const suffix = v => { const f = String(o.fmt(v)), n = String(Math.abs(v)), i = f.indexOf(n); return i < 0 ? "= " + f : f.slice(i + n.length); };
+  const sync = (typed = false) => { const v = o.get(); if (!typed) num.value = v; rng.value = v; rng.style.setProperty("--f", ((v - o.min) / (o.max - o.min) * 100) + "%"); unit.textContent = suffix(v); };
+  rng.oninput = () => { o.set(+rng.value); sync(); };
+  num.oninput = () => { if (num.value !== "" && !isNaN(+num.value)) { o.set(+num.value); sync(true); } };
+  num.onkeydown = e => { if (e.key === "Enter") { sync(); closePop(); } if (e.key === "Escape") closePop(); };
+  pop.querySelector(".ph button").onclick = () => { o.reset(); sync(); num.select(); };
+  document.body.append(pop); sync();
+  const r = anchor.getBoundingClientRect(), w = pop.offsetWidth;
+  pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + scrollX + "px";
+  pop.style.top = r.bottom + 4 + scrollY + "px";
+  num.focus(); num.select();
+}
+document.addEventListener("pointerdown", e => { if (pop && !pop.contains(e.target) && !e.target.closest(".v")) closePop(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePop(); });
+
+function seg(labels, on, cls = "") { return `<div class="seg ${cls}" data-seg>${labels.map(l => `<button class="${l === on ? "on" : ""}">${l}</button>`).join("")}</div>`; }
+
+function rhythm(el, { id, name, density, plays, flips = [], mods, mode = "barlow" }) {
+  const st = { k: density, rot: 0, mode, acc: 0.4 };
+  el.innerHTML = `
+    <div class="tbar"><span class="tab"></span><button class="fold">▾</button><span class="id">${id}</span>
+      <span class="name">${name}</span>
+      <div class="plays">${[1,2,3,4,5].map(n => `<button class="${n === plays ? "on" : ""}">${n}</button>`).join("")}</div>
+      <span class="read"></span>
+      <div class="ms"><button class="b sq" data-tog>M</button><button class="b sq" data-tog>S</button><button class="b sq" title="Mutate this rhythm"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect x=".5" y=".5" width="11" height="11" rx="2" fill="none" stroke="currentColor"/><g fill="currentColor"><circle cx="3.5" cy="3.5" r="1.1"/><circle cx="8.5" cy="3.5" r="1.1"/><circle cx="6" cy="6" r="1.1"/><circle cx="3.5" cy="8.5" r="1.1"/><circle cx="8.5" cy="8.5" r="1.1"/></g></svg></button></div></div>
+    <div class="dgrid">
+      <div class="c-pat"><div class="sect">Pattern</div></div>
+      <div class="c-feel"><div class="sect">Feel</div></div>
+      <div class="c-mot"><div class="sect">Motion</div></div>
+      <div class="fanc"><canvas class="fan"></canvas></div>
+    </div>
+    <div class="dfoot">
+      <div class="strata" style="flex-direction:column;align-items:flex-start;gap:6px;width:200px"><span class="sect bare stl">Strata</span>${seg(["2·2·2·2", "4·4", "2·8"], "2·2·2·2")}<span class="hint stx"></span></div>
+      <div><canvas class="tree"></canvas></div>
+    </div>
+    <div class="mini">
+      <div><div class="steps bar4" style="flex:1"></div></div>
+      <div class="levers"></div>
+      <div class="mods">${mods}</div>
+    </div>`;
+  const render = () => {
+    const act = pattern(st), eu = st.mode === "euclid";
+    el.querySelector(".read").textContent = eu ? `E(${st.k},16)${st.rot ? " +" + st.rot : ""} · ${gaps(act).map(x => x.len).join("·")}` : `${st.k}/16 · 2·2·2·2`;
+    el.querySelector(".stl").textContent = eu ? "Accent meter" : "Strata";
+    el.querySelector(".stx").textContent = eu ? "Hits are spaced evenly. The meter only sets how loud each one is." : "The meter picks the hits, strongest steps first.";
+    steps(el.querySelector(".mini .steps"), act, flips);
+    fan(el.querySelector(".fan"), act, getComputedStyle(el).getPropertyValue("--vc").trim() || "#ecebe6");
+    if (!el.classList.contains("folded")) tree(el.querySelector(".tree"), act, eu, st.acc);
+  };
+  const P = el.querySelector(".c-pat"), F = el.querySelector(".c-feel"), M = el.querySelector(".c-mot");
+  PATTERN.forEach(p => param(P, { ...p,
+    val: p.label === "Density" ? density : p.val,
+    on: p.label === "Density" ? v => { st.k = v; render(); } : p.label === "Rotate" ? v => { st.rot = v; render(); } : undefined }));
+  const modeRow = document.createElement("div"); modeRow.className = "p seg-row"; modeRow.innerHTML = `<span class="l">Mode</span>${seg(["Barlow", "Euclid"], mode === "euclid" ? "Euclid" : "Barlow")}`; P.insertBefore(modeRow, P.children[4]);
+  modeRow.onclick = e => { const b = e.target.closest("button"); if (b) { st.mode = b.textContent.toLowerCase(); render(); } };
+  FEEL.forEach(p => param(F, { ...p, on: p.label === "Vel depth" ? v => { st.acc = v / 100; render(); } : undefined }));
+  const lock = document.createElement("div"); lock.className = "p seg-row"; lock.innerHTML = `<span class="l">Lock</span>${seg(["Free", "Avoid", "Join"], "Free")}`; M.append(lock);
+  MOTION.forEach(p => param(M, { ...p }));
+  const L = el.querySelector(".levers");
+  [{ label: "Steps", val: 16, min: 1, max: 64 }, { label: "Density", val: density, min: 0, max: 16, def: 6, on: v => { st.k = v; render(); } }, { label: "Rotate", val: 0, min: 0, max: 15, on: v => { st.rot = v; render(); } }].forEach(p => param(L, p));
+  el.querySelector(".fold").onclick = () => { el.classList.toggle("folded"); render(); };
+  requestAnimationFrame(render);
+}
+document.fonts.ready.then(() => {
+rhythm($("#rhy1"), { id: "R1", name: "Kick", density: 5, plays: 1, mode: "euclid", mods: "nothing else changed" });
+rhythm($("#rhy2"), { id: "R2", name: "Clave", density: 6, plays: 2, flips: [3, 10], mods: "<b>Vel depth 40%</b> · <b>Chance 92%</b> · <b>Ghosts 15%</b> · 2 flips" });
+});
+
+// instruments
+const SOUND = [{ label: "Pitch", val: 33, min: 0, max: 127, def: 33, fmt: v => ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"][v % 12] + (Math.floor(v / 12) - 1) },
+  { label: "Decay", val: 40, min: 0, max: 100, def: 40, fmt: pct }, { label: "Tone", val: 50, min: 0, max: 100, def: 50, fmt: pct },
+  { label: "Level", val: 80, min: 0, max: 100, def: 80, fmt: pct }, { label: "Pan", val: 0, min: -50, max: 50, def: 0, fmt: v => v ? (v < 0 ? "L" : "R") + Math.abs(v) : "C" }];
+[["1", "Kick", "--v0"], ["2", "Clave", "--v3"], ["3", "Bongo", "--v1"], ["4", "Conga", "--v4"]].forEach(([n, name, c]) => {
+  const d = document.createElement("div"); d.className = "dev"; d.style.setProperty("--vc", `var(${c})`);
+  d.innerHTML = `<div class="tbar"><span class="tab"></span><span class="id" style="padding-left:6px">${n}</span><span class="name">${name}</span><span class="read">← R${n}</span><button class="b ghost">Sample</button></div>
+    <div class="dgrid"><div class="s"><div class="sect">Sound</div></div><div class="t"><div class="sect">Pitch</div></div></div>`;
+  SOUND.forEach(p => param(d.querySelector(".s"), { ...p }));
+  const pf = document.createElement("div"); pf.className = "p seg-row"; pf.innerHTML = `<span class="l">From</span>${seg(["Fixed", "Weight", "Step"], "Fixed")}`; d.querySelector(".t").append(pf);
+  param(d.querySelector(".t"), { label: "Range", val: 5, min: -24, max: 24, def: 5, fmt: v => (v > 0 ? "+" : "") + v + " st" });
+  const st = document.createElement("div"); st.className = "p seg-row"; st.innerHTML = `<span class="l">Strokes</span><button class="b tog on" data-tog>On</button>`; d.querySelector(".t").append(st);
+  param(d.querySelector(".t"), { label: "MIDI ch", val: +n, min: 1, max: 16, def: +n });
+  $("#insts").append(d);
+});
+
+// patch
+{
+  const p = $("#patch"), cols = ["Kick", "Clave", "Bongo", "Conga", "Hat"], vcs = ["--v0", "--v3", "--v1", "--v4", "--v2"];
+  p.innerHTML = `<div class="h">R→</div>` + cols.map(c => `<div class="h">${c}</div>`).join("");
+  for (let r = 0; r < 5; r++) {
+    p.insertAdjacentHTML("beforeend", `<div>R${r + 1}</div>`);
+    cols.forEach((_, c) => { const b = document.createElement("button"); b.style.setProperty("--vc", `var(${vcs[c]})`); if (r === c) b.className = "on"; b.onclick = () => { [...p.querySelectorAll("button")].filter((_, k) => Math.floor(k / 5) === r).forEach(x => x.classList.remove("on")); b.classList.add("on"); }; p.append(b); });
+  }
+}
+
+// generic behaviour: segmented, toggles, stepper, accent
+document.addEventListener("click", e => {
+  const sb = e.target.closest("[data-seg] button");
+  if (sb) { [...sb.parentElement.children].forEach(x => x.classList.toggle("on", x === sb)); if (sb.parentElement.id === "accent") document.body.classList.toggle("amber", sb.dataset.a === "amber"); return; }
+  const t = e.target.closest("[data-tog]");
+  if (t) { t.classList.toggle("on"); if (t.classList.contains("tog")) t.textContent = t.classList.contains("on") ? "On" : "Off"; }
+  const s = e.target.closest("[data-stp] button");
+  if (s) { const o = s.parentElement.querySelector("output"); o.value = Math.min(8, Math.max(1, +o.value + (s.textContent === "+" ? 1 : -1))); }
+});
+</script>
+</body>
+</html>
